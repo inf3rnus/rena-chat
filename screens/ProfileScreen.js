@@ -48,7 +48,7 @@ export default class ProfileScreen extends Component {
             method: 'GET',
             headers: myHeaders
         }
-        let response = await fetch( HOST + '/api/v1/get_current_profile', options);
+        let response = await fetch( HOST + '/api/v1/users/get_current_profile', options);
         let responseJSON = await response.json();
         console.log('[getProfile] - Current user profile\'s details: ' + JSON.stringify(responseJSON));
 
@@ -96,7 +96,7 @@ export default class ProfileScreen extends Component {
             method: 'GET',
             headers: myHeaders
         }
-        let response = await fetch( HOST + '/api/v1/get_friends/', options);
+        let response = await fetch( HOST + '/api/v1/friends/get_friends/', options);
         let responseJSON = await response.json();
         console.log('[getFriends] - Friends for user: ' + this.props.screenProps.username + ' ' + JSON.stringify(responseJSON));
 
@@ -145,7 +145,7 @@ export default class ProfileScreen extends Component {
             method: 'GET',
             headers: myHeaders
         }
-        let response = await fetch(HOST + '/api/v1/get_pending_friends/', options);
+        let response = await fetch(HOST + '/api/v1/friends/get_pending_friends/', options);
         let responseJSON = await response.json();
         console.log('[getPendingFriends] - Friends for user: ' + this.props.screenProps.username + ' ' + JSON.stringify(responseJSON));
 
@@ -196,7 +196,7 @@ export default class ProfileScreen extends Component {
             headers: myHeaders,
             body: data
         }
-        let response = await fetch(HOST + '/api/v1/request_friend', options);
+        let response = await fetch(HOST + '/api/v1/friends/request_friend', options);
         let responseJSON = await response.json();
         console.log('[requestFriend] - Requested friend: ' + friend_username + ' for user: ' + this.props.screenProps.username + ' Result: ' + JSON.stringify(responseJSON.success));
         Alert.alert(friend_username + ' friend request sent!', 'You have requested to be friends with ' + friend_username + '!');
@@ -213,7 +213,7 @@ export default class ProfileScreen extends Component {
             headers: myHeaders,
             body: data
         }
-        let response = await fetch(HOST + '/api/v1/confirm_friend', options);
+        let response = await fetch(HOST + '/api/v1/friends/confirm_friend', options);
         let responseJSON = await response.json();
         console.log('[confirmFriend] - Confirmed friend: ' + friend_username + ' for user: ' + this.props.screenProps.username + ' Result: ' + JSON.stringify(responseJSON.success));
         Alert.alert(friend_username + ' added!', 'You have added ' + friend_username + ' to your friends list!');
@@ -233,7 +233,7 @@ export default class ProfileScreen extends Component {
             headers: myHeaders,
             body: data
         }
-        let response = await fetch(HOST + '/api/v1/remove_friend', options);
+        let response = await fetch(HOST + '/api/v1/friends/remove_friend', options);
         let responseJSON = await response.json();
         console.log('[removeFriend] - Confirmed friend: ' + friend_username + ' for user: ' + this.props.screenProps.username + ' Result: ' + JSON.stringify(responseJSON.success));
         Alert.alert(friend_username + ' removed', 'You have removed ' + friend_username + ' from your friends list.');
@@ -282,7 +282,7 @@ export default class ProfileScreen extends Component {
                     headers: myHeaders,
                     body: data
                 }
-                let serverResponse = await fetch(HOST + '/api/v1/set_profile_picture', options);
+                let serverResponse = await fetch(HOST + '/api/v1/users/set_profile_picture', options);
                 let responseJSON = await serverResponse.json();
                 Alert.alert('Success', 'You have successfully added your new profile picture!');
 
@@ -313,7 +313,7 @@ export default class ProfileScreen extends Component {
                 body: data
             }
             console.log('[setProfileBio] - Setting bio to: ' + this.state.profile.bio);
-            let response = await fetch(HOST + '/api/v1/set_profile_bio', options);
+            let response = await fetch(HOST + '/api/v1/users/set_profile_bio', options);
             let responseJSON = await response.json();
             console.log('[setProfileBio] - Successfully added bio to profile, bio: ' + responseJSON.bio);
             Alert.alert('Bio changed!', 'You have successfully changed your bio.');
@@ -338,7 +338,7 @@ export default class ProfileScreen extends Component {
             headers: myHeaders,
             body: data
         }
-        let response = await fetch(HOST + '/api/v1/remove_pending_friend', options);
+        let response = await fetch(HOST + '/api/v1/friends/remove_pending_friend', options);
         let responseJSON = await response.json();
         console.log('[removePendingFriend] - Pending friend: ' + friend_username + ' for user: ' + this.props.screenProps.username + ' Result: ' + JSON.stringify(responseJSON.success));
         Alert.alert(friend_username + ' removed', 'You have removed ' + friend_username + ' from your friends list.');
@@ -382,11 +382,6 @@ export default class ProfileScreen extends Component {
         this.setState(() => ({
             busy: false
         }))
-
-
-
-
-
     }
 
     componentWillMount() {

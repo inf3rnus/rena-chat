@@ -48,7 +48,7 @@ export default class ProfileScreen extends Component {
             method: 'GET',
             headers: myHeaders
         }
-        let response = await fetch( HOST + '/api/v1/users/get_current_profile', options);
+        let response = await fetch(HOST + '/api/v1/users/get_current_profile', options);
         let responseJSON = await response.json();
         console.log('[getProfile] - Current user profile\'s details: ' + JSON.stringify(responseJSON));
 
@@ -96,7 +96,7 @@ export default class ProfileScreen extends Component {
             method: 'GET',
             headers: myHeaders
         }
-        let response = await fetch( HOST + '/api/v1/friends/get_friends', options);
+        let response = await fetch(HOST + '/api/v1/friends/get_friends', options);
         let responseJSON = await response.json();
         console.log('[getFriends] - Friends for user: ' + this.props.screenProps.username + ' ' + JSON.stringify(responseJSON));
 
@@ -383,23 +383,7 @@ export default class ProfileScreen extends Component {
             busy: false
         }))
     }
-
-    componentWillMount() {
-        this.setState({
-            messages: [
-                {
-                    _id: 1,
-                    text: 'Hello developer',
-                    createdAt: new Date(),
-                    user: {
-                        _id: 2,
-                        name: 'React Native',
-                        avatar: 'https://placeimg.com/140/140/any',
-                    },
-                },
-            ],
-        })
-    }
+    
     renderActivityIndicator() {
         if (this.state.busy) {
             return (
@@ -434,20 +418,25 @@ export default class ProfileScreen extends Component {
             />
         );
     }
-    renderListHeader() {
+    renderListHeader(shouldRenderFriendBar) {
         return (
             <View style={{ flex: 1, alignSelf: 'stretch', marginBottom: 10 }}>
-                <View style={styles.addFriendBar}>
-                    <TextInput
-                        style={styles.addFriendBarTextField}
-                        onChangeText={(text) => this.state.request_friend_text = text}
-                        placeholder='Request friend'
-                        placeholderTextColor='grey'
-                    />
-                    <TouchableOpacity style={styles.addFriendBarButton} onPress={() => { this.requestFriend(this.state.request_friend_text) }}>
-                        <Text style={styles.addFriendBarText}>Add</Text>
-                    </TouchableOpacity>
-                </View>
+                {
+                    shouldRenderFriendBar === true ?
+                        <View style={styles.addFriendBar}>
+                            <TextInput
+                                style={styles.addFriendBarTextField}
+                                onChangeText={(text) => this.state.request_friend_text = text}
+                                placeholder='Request friend'
+                                placeholderTextColor='grey'
+                            />
+                            <TouchableOpacity style={styles.addFriendBarButton} onPress={() => { this.requestFriend(this.state.request_friend_text) }}>
+                                <Text style={styles.addFriendBarText}>Add</Text>
+                            </TouchableOpacity>
+                        </View>
+                        :
+                        null
+                }
                 {
                     this.state.pending_friends.length > 0 ?
                         <View>
@@ -556,15 +545,9 @@ export default class ProfileScreen extends Component {
 
                         <View style={styles.bodyContainer}>
                             <View style={styles.bodyTopBar}>
-                                <TouchableOpacity
-                                    style={styles.bodyTopBarHotButton}
-                                    onPress={this.changeBodyOption.bind(this, 'posts')}
-                                >
-                                    <Text style={styles.bodyTopBarPostsButtonText}>Posts</Text>
-                                </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.bodyTopBarHotButton}
+                                    style={styles.bodyTopBarFriendsButton}
                                     onPress={this.changeBodyOption.bind(this, 'friends')}
                                 >
                                     <Text style={styles.bodyTopBarFriendsButtonText}>Friends</Text>
@@ -578,8 +561,6 @@ export default class ProfileScreen extends Component {
                                 </TouchableOpacity>
 
                             </View>
-
-
 
                             <FlatList
                                 style={styles.postsContainer}
@@ -601,7 +582,7 @@ export default class ProfileScreen extends Component {
                                     </View>
                                 )}
                                 ItemSeparatorComponent={this.renderSeparatorComponent}
-                                ListHeaderComponent={this.renderListHeader}
+                                ListHeaderComponent={this.renderListHeader.bind(this, true)}
                                 keyExtractor={item => item.username}
                             />
                         </View>
@@ -638,15 +619,9 @@ export default class ProfileScreen extends Component {
 
                         <View style={styles.bodyContainer}>
                             <View style={styles.bodyTopBar}>
-                                <TouchableOpacity
-                                    style={styles.bodyTopBarHotButton}
-                                    onPress={this.changeBodyOption.bind(this, 'posts')}
-                                >
-                                    <Text style={styles.bodyTopBarPostsButtonText}>Posts</Text>
-                                </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.bodyTopBarHotButton}
+                                    style={styles.bodyTopBarFriendsButton}
                                     onPress={this.changeBodyOption.bind(this, 'friends')}
                                 >
                                     <Text style={styles.bodyTopBarFriendsButtonText}>Friends</Text>
@@ -683,7 +658,7 @@ export default class ProfileScreen extends Component {
                                     </View>
                                 )}
                                 ItemSeparatorComponent={this.renderSeparatorComponent}
-                                ListHeaderComponent={this.renderListHeader}
+                                ListHeaderComponent={this.renderListHeader.bind(this, false)}
                                 keyExtractor={item => item.username}
                             />
                         </View>
@@ -802,8 +777,6 @@ const styles = StyleSheet.create({
         alignSelf: 'stretch',
         borderRightWidth: 1,
         borderRightColor: 'grey',
-        borderLeftWidth: 1,
-        borderLeftColor: 'grey'
         //backgroundColor: 'yellow'
     },
     bodyTopBarFriendsButtonText: {

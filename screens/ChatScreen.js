@@ -83,7 +83,7 @@ export default class ChatScreen extends Component {
         // Figure out how to automate conversation id...
         // Offset should be same as limit
 
-        let response = await fetch(HOST + '/api/v1/messages/get_conversation_messages?limit=' + LIMIT + '&offset=' + this.state.page_offset + '&conversation_id=' + conversation_id, options);
+        let response = await fetch(HOST + '/api/v1/chat/get_conversation_messages?limit=' + LIMIT + '&offset=' + this.state.page_offset + '&conversation_id=' + conversation_id, options);
         this.state.page_offset += 10;
         let responseJSON = await response.json();
 

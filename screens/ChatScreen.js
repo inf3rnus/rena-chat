@@ -3,9 +3,8 @@ import { Alert, AsyncStorage, Image, Keyboard, StyleSheet, PermissionsAndroid, A
 import { GiftedChat } from 'react-native-gifted-chat';
 
 const HOST = 'http://10.0.2.2:8000';
+const WS_HOST = 'ws://10.0.2.2:8000';
 const LIMIT = 10;
-
-
 
 export default class ChatScreen extends Component {
 
@@ -28,7 +27,7 @@ export default class ChatScreen extends Component {
 
     socket;
     setupWebsocket() {
-        this.socket = new WebSocket('ws://10.0.2.2/ws/chat');
+        this.socket = new WebSocket(WS_HOST + '/ws/chat');
         console.log('Socket is: ' + this.socket);
 
         // If the conversation ID has not been ascertained yet, retrieve it

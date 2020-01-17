@@ -35,7 +35,7 @@ export default class UserSetup extends Component {
             }
 
             // http://localhost:8000/api-token-auth/
-            let response = await fetch(HOST + '/api-token-auth/', options);
+            let response = await fetch(HOST + '/api/v1/rest-auth/login/', options);
             let responseJSON = await response.json();
 
             console.log('[login] - HTTP Status Code: ' + response.status);

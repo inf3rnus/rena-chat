@@ -4,7 +4,8 @@ import ImagePicker from 'react-native-image-picker';
 import { TextInput } from 'react-native-gesture-handler';
 import RNFetchBlob from 'rn-fetch-blob';
 
-const HOST = 'http://10.0.2.2:8000';
+//const HOST = 'http://10.0.2.2:8000';
+const HOST = 'http://rena-chat.herokuapp.com';
 
 export default class ProfileScreen extends Component {
 

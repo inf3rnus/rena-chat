@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import { ActivityIndicator, Alert, AsyncStorage, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, Text, TouchableOpacity, TouchableWithoutFeedback, View, Button, Platform } from 'react-native';
 import { TextInput } from 'react-native-gesture-handler';
 
-const HOST = 'http://10.0.2.2:8000';
+//const HOST = 'http://10.0.2.2:8000';
+const HOST = 'http://rena-chat.herokuapp.com';
 
 export default class UserSetup extends Component {
     constructor(props) {

@@ -51,11 +51,11 @@ export default class UserSetup extends Component {
                     break;
                 case 400:
                     console.log('[login] - JSON Error: ' + JSON.stringify(responseJSON));
-                    Alert.alert('We couldn\'nt log into your account', responseJSON[Object.keys(responseJSON)[0]][0]);
+                    Alert.alert('We couldn\'t log into your account', responseJSON[Object.keys(responseJSON)[0]][0]);
                     break;
                 case 401:
                     console.log('[login] - JSON Error: ' + JSON.stringify(responseJSON));
-                    Alert.alert('We couldn\'nt log into your account', responseJSON[Object.keys(responseJSON)[0]][0]);
+                    Alert.alert('We couldn\'t log into your account', responseJSON[Object.keys(responseJSON)[0]][0]);
                     break;
                 default:
                     Alert.alert('Oops, something went wrong', 'Something went wrong, please try logging in again in a couple of minutes.')

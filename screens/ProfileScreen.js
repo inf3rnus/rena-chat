@@ -96,7 +96,7 @@ export default class ProfileScreen extends Component {
             method: 'GET',
             headers: myHeaders
         }
-        let response = await fetch( HOST + '/api/v1/friends/get_friends/', options);
+        let response = await fetch( HOST + '/api/v1/friends/get_friends', options);
         let responseJSON = await response.json();
         console.log('[getFriends] - Friends for user: ' + this.props.screenProps.username + ' ' + JSON.stringify(responseJSON));
 
@@ -145,7 +145,7 @@ export default class ProfileScreen extends Component {
             method: 'GET',
             headers: myHeaders
         }
-        let response = await fetch(HOST + '/api/v1/friends/get_pending_friends/', options);
+        let response = await fetch(HOST + '/api/v1/friends/get_pending_friends', options);
         let responseJSON = await response.json();
         console.log('[getPendingFriends] - Friends for user: ' + this.props.screenProps.username + ' ' + JSON.stringify(responseJSON));
 

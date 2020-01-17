@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#62F698',
+        backgroundColor: 'white',
 
     },
     pinContainer: {

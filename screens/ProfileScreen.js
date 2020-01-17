@@ -706,7 +706,7 @@ const styles = StyleSheet.create({
         padding: 25,
         //paddingHorizontal: '5%',kjk
         flexDirection: 'column',
-        backgroundColor: '#62F698',
+        backgroundColor: 'lightgrey',
     },
     chatContainer: {
 

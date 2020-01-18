@@ -1,10 +1,13 @@
 import React, { Component } from 'react';
 import { ActivityIndicator, Alert, AsyncStorage, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, Text, TouchableOpacity, TouchableWithoutFeedback, View, Button, Platform } from 'react-native';
+import { connect } from 'react-redux';
+import { login } from './reducer';
 import { TextInput } from 'react-native-gesture-handler';
 
-const HOST = 'http://10.0.2.2:8000';
+//const HOST = 'http://10.0.2.2:8000';
+const HOST = 'http://rena-chat.herokuapp.com';
 
-export default class UserSetup extends Component {
+export class UserSetup extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -17,55 +20,30 @@ export default class UserSetup extends Component {
     }
 
     async login() {
-        this.setState(() => ({
-            busy: true
-        }));
 
-        try {
-            console.log('[login] - Attempting to login.');
-
-            let data = this.createFormData({ username: this.state.username, password: this.state.password });
-
-            let options = {
-                method: 'POST',
-                headers: {
-                },
-                credentials: 'include',
-                body: data
-            }
-
-            // http://localhost:8000/api-token-auth/
-            let response = await fetch(HOST + '/api/v1/rest-auth/login/', options);
-            let responseJSON = await response.json();
-
-            console.log('[login] - HTTP Status Code: ' + response.status);
-
-
-            switch (Number(response.status)) {
-                case 200:
-                    this.props.screenProps.authToken = responseJSON.token;
-                    AsyncStorage.setItem('authToken', responseJSON.token);
-                    console.log('[login] - Login key is: ' + responseJSON.token);
-                    this.props.screenProps.username = this.state.username;
-                    this.props.navigation.replace('Profile');
-                    break;
-                case 400:
-                    console.log('[login] - JSON Error: ' + JSON.stringify(responseJSON));
-                    Alert.alert('We couldn\'t log into your account', responseJSON[Object.keys(responseJSON)[0]][0]);
-                    break;
-                case 401:
-                    console.log('[login] - JSON Error: ' + JSON.stringify(responseJSON));
-                    Alert.alert('We couldn\'t log into your account', responseJSON[Object.keys(responseJSON)[0]][0]);
-                    break;
-                default:
-                    Alert.alert('Oops, something went wrong', 'Something went wrong, please try logging in again in a couple of minutes.')
-            }
-        }
-        catch (e) {
-            console.log(e.message);
-            this.setState(() => ({
-                busy: false
-            }));
+        console.log('[login] - Attempting to login.');
+        let data = this.createFormData({ username: this.state.username, password: this.state.password });
+        await this.props.login('/api/v1/rest-auth/login/', data);
+        let { status, token } = this.props.response;
+        console.log('[login] - HTTP Status Code: ' + status);
+        switch (Number(status)) {
+            case 200:
+                this.props.screenProps.authToken = token;
+                AsyncStorage.setItem('authToken', token);
+                console.log('[login] - Login key is: ' + token);
+                this.props.screenProps.username = this.state.username;
+                this.props.navigation.navigate('Profile');
+                break;
+            case 400:
+                console.log('[login] - JSON Error: ' + JSON.stringify(responseJSON));
+                Alert.alert('We couldn\'t log into your account', responseJSON[Object.keys(responseJSON)[0]][0]);
+                break;
+            case 401:
+                console.log('[login] - JSON Error: ' + JSON.stringify(responseJSON));
+                Alert.alert('We couldn\'t log into your account', responseJSON[Object.keys(responseJSON)[0]][0]);
+                break;
+            default:
+                Alert.alert('Oops, something went wrong', 'Something went wrong, please try logging in again in a couple of minutes.')
         }
     }
 
@@ -83,7 +61,7 @@ export default class UserSetup extends Component {
     }
 
     renderActivityIndicator() {
-        if (this.state.busy) {
+        if (this.props.loading) {
             return (
                 <ActivityIndicator
                     style={{
@@ -150,6 +128,20 @@ export default class UserSetup extends Component {
         );
     }
 }
+
+// Refers to the Redux state
+const mapStateToProps = state => {
+    let response = state.response;
+    return {
+        response: response
+    };
+};
+
+const mapDispatchToProps = {
+    login
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(UserSetup);
 
 var styles = StyleSheet.create({
     container: {

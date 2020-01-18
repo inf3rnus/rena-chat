@@ -2,8 +2,10 @@ import React, { Component } from 'react';
 import { Alert, AsyncStorage, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, Text, TextInput, TouchableOpacity, View, Button, Platform } from 'react-native';
 import { GiftedChat } from 'react-native-gifted-chat';
 
-const HOST = 'http://10.0.2.2:8000';
-const WS_HOST = 'ws://10.0.2.2:8000';
+//const HOST = 'http://10.0.2.2:8000';
+const HOST = 'http://rena-chat.herokuapp.com';
+//const WS_HOST = 'ws://10.0.2.2:8000';
+const WS_HOST = 'ws://rena-chat.herokuapp.com';
 const LIMIT = 10;
 
 export default class ChatScreen extends Component {

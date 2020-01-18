@@ -4,7 +4,9 @@ import ImagePicker from 'react-native-image-picker';
 import { TextInput } from 'react-native-gesture-handler';
 import RNFetchBlob from 'rn-fetch-blob';
 
-const HOST = 'http://10.0.2.2:8000';
+//const HOST = 'http://10.0.2.2:8000';
+
+const HOST = 'http://rena-chat.herokuapp.com';
 
 export default class ProfileScreen extends Component {
 
@@ -383,7 +385,7 @@ export default class ProfileScreen extends Component {
             busy: false
         }))
     }
-    
+
     renderActivityIndicator() {
         if (this.state.busy) {
             return (
@@ -697,12 +699,12 @@ const styles = StyleSheet.create({
     },
     // Adjusting the flex fixes the border issue with the images.
     profileBannerPictureGroupContainer: {
-        flex: .75,
+        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
     },
     profileBannerPictureContainer: {
-        flex: .7,
+        flex: 1,
         aspectRatio: 1,
         borderRadius: 200,
         margin: '2%',

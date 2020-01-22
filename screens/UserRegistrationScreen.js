@@ -1,12 +1,14 @@
 import React, { Component } from 'react';
 import { ActivityIndicator, Alert, AsyncStorage, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, Text, TouchableOpacity, TouchableWithoutFeedback, View, Button, Platform } from 'react-native';
 import { StackActions, NavigationActions } from 'react-navigation';
+import { connect } from 'react-redux';
+import { postHttp } from './reducer';
 import { TextInput } from 'react-native-gesture-handler';
 
 //const HOST = 'http://10.0.2.2:8000';
 const HOST = 'http://rena-chat.herokuapp.com';
 
-export default class UserSetup extends Component {
+export class UserSetup extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -20,63 +22,38 @@ export default class UserSetup extends Component {
     }
 
     async register() {
-        this.setState(() => ({
-            busy: true
-        }));
 
-        try {
+        console.log('[register] - Attempting to register a user');
 
-            console.log('[register] - Attempting to register a user');
+        let data = this.createFormData({ username: this.state.username, password1: this.state.password1, password2: this.state.password2 });
 
-            let data = this.createFormData({ username: this.state.username, password1: this.state.password1, password2: this.state.password2 });
-
-            let options = {
-                method: 'POST',
-                headers: {
-                },
-                credentials: 'include',
-                body: data
-            }
-
-            let response = await fetch(HOST + '/api/v1/rest-auth/registration/', options);
-            let responseJSON = await response.json();
-            console.log('RESPONSE IS: ' + JSON.stringify(response));
-            console.log('[register] - JSON BODY IS: ' + JSON.stringify(responseJSON));
-            console.log('[register] - HTTP Status Code: ' + response.status);
-
-            switch (Number(response.status)) {
-                case 201:
-                    this.props.screenProps.authToken = responseJSON.token;
-                    console.log('[login] - Login key is: ' + this.props.screenProps.authToken);
-                    Alert.alert('Success', "Your account has successfully been created. You are now logged in!");
-                    const resetAction = StackActions.reset({
-                        index: 0,
-                        actions: [
-                          NavigationActions.navigate({ routeName: 'Profile' }),
-                        ],
-                      });
-                      this.props.navigation.dispatch(resetAction);
-                    break;
-                case 400:
-                    console.log('[login] - JSON Error: ' + JSON.stringify(responseJSON));
-                    Alert.alert('We couldn\'t create your account', responseJSON[Object.keys(responseJSON)[0]][0]);
-                    break;
-                case 401:
-                    console.log('[login] - JSON Error: ' + JSON.stringify(responseJSON));
-                    Alert.alert('We couldn\'t create your account', responseJSON[Object.keys(responseJSON)[0]][0]);
-                    break;
-                default:
-                    Alert.alert('Oops, something went wrong', 'Something went wrong, please try logging in again in a couple of minutes.')
-            }
+        await this.props.postHttp('/api/v1/rest-auth/registration/', data);
+        console.log('[login] - HTTP Status Code: ' + this.props.response.status);
+        let { status } = this.props.response;
+        switch (Number(status)) {
+            case 201:
+                let { token } = this.props.response.data;
+                this.props.screenProps.authToken = token;
+                console.log('[login] - Login key is: ' + this.props.screenProps.authToken);
+                Alert.alert('Success', "Your account has successfully been created. You are now logged in!");
+                const resetAction = StackActions.reset({
+                    index: 0,
+                    actions: [
+                        NavigationActions.navigate({ routeName: 'Profile' }),
+                    ],
+                });
+                this.props.navigation.dispatch(resetAction);
+                break;
+            case 400:
+                Alert.alert('We couldn\'t create your account');
+                break;
+            case 401:
+                Alert.alert('We couldn\'t create your account');
+                break;
+            default:
+                Alert.alert('Oops, something went wrong', 'Something went wrong, please try logging in again in a couple of minutes.')
         }
-        catch (e) {
-            this.setState(() => ({
-                busy: false
-            }));
-        }
-        this.setState(() => ({
-            busy: false
-        }));
+
     }
 
     createFormData(body) {
@@ -89,7 +66,7 @@ export default class UserSetup extends Component {
     };
 
     renderActivityIndicator() {
-        if (this.state.busy) {
+        if (this.props.loading) {
             return (
                 <ActivityIndicator
                     style={{
@@ -163,6 +140,24 @@ export default class UserSetup extends Component {
         );
     }
 }
+
+// Refers to the Redux state
+const mapStateToProps = state => {
+    let response = state.response;
+    let loading = state.loading;
+    let jwt_token = state.jwt_token;
+    return {
+        loading: loading,
+        jwt_token: jwt_token,
+        response: response
+    };
+};
+
+const mapDispatchToProps = {
+    postHttp
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(UserSetup);
 
 var styles = StyleSheet.create({
     container: {

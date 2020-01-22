@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { ActivityIndicator, Alert, AsyncStorage, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, Text, TouchableOpacity, TouchableWithoutFeedback, View, Button, Platform } from 'react-native';
 import { connect } from 'react-redux';
-import { login } from './reducer';
+import { postHttp } from './reducer';
 import { TextInput } from 'react-native-gesture-handler';
 
 //const HOST = 'http://10.0.2.2:8000';
@@ -23,14 +23,14 @@ export class UserSetup extends Component {
 
         console.log('[login] - Attempting to login.');
         let data = this.createFormData({ username: this.state.username, password: this.state.password });
-        await this.props.login('/api/v1/rest-auth/login/', data);
+        await this.props.postHttp('/api/v1/rest-auth/login/', data);
         let { status } = this.props.response;
         let { token } = this.props.response.data;
         console.log('[login] - HTTP Status Code: ' + status);
         switch (Number(status)) {
             case 200:
                 this.props.screenProps.authToken = token;
-                AsyncStorage.setItem('authToken', token);
+                await AsyncStorage.setItem('authToken', token);
                 console.log('[login] - Login key is: ' + token);
                 this.props.screenProps.username = this.state.username;
                 this.props.navigation.navigate('Profile');
@@ -142,7 +142,7 @@ const mapStateToProps = state => {
 };
 
 const mapDispatchToProps = {
-    login
+    postHttp
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(UserSetup);

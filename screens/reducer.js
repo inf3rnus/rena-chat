@@ -2,13 +2,17 @@ export const GET = 'GET';
 export const GET_SUCCESS = 'GET_SUCCESS';
 export const GET_FAIL = 'GET_FAIL';
 
+export const POST = 'POST';
+export const POST_SUCCESS = 'POST_SUCCESS';
+export const POST_FAIL = 'POST_FAIL';
+
 export default function reducer(state = {}, action) {
     switch (action.type) {
-        case GET:
+        case POST:
             return { ...state, loading: true };
-        case GET_SUCCESS:
+        case POST_SUCCESS:
             return { ...state, loading: false, response: action.payload };
-        case GET_FAIL:
+        case POST_FAIL:
             return {
                 ...state,
                 loading: false,
@@ -19,9 +23,9 @@ export default function reducer(state = {}, action) {
     }
 }
 
-export function login(url, data) {
+export function postHttp(url, data) {
     return {
-        type: GET,
+        type: POST,
         payload: {
             request: {
                 data: data,

@@ -7,7 +7,7 @@ import { TextInput } from 'react-native-gesture-handler';
 //const HOST = 'http://10.0.2.2:8000';
 const HOST = 'http://rena-chat.herokuapp.com';
 
-export class UserSetup extends Component {
+export class UserLogin extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -149,7 +149,7 @@ const mapDispatchToProps = {
     postHttp
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(UserSetup);
+export default connect(mapStateToProps, mapDispatchToProps)(UserLogin);
 
 var styles = StyleSheet.create({
     container: {

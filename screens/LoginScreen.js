@@ -62,6 +62,7 @@ export class UserSetup extends Component {
     }
 
     renderActivityIndicator() {
+        console.log('LOGIN: Loading variable is: ' + this.props.loading);
         if (this.props.loading) {
             return (
                 <ActivityIndicator
@@ -133,7 +134,9 @@ export class UserSetup extends Component {
 // Refers to the Redux state
 const mapStateToProps = state => {
     let response = state.response;
+    let loading = state.loading;
     return {
+        loading: loading,
         response: response
     };
 };

@@ -24,7 +24,8 @@ export class UserSetup extends Component {
         console.log('[login] - Attempting to login.');
         let data = this.createFormData({ username: this.state.username, password: this.state.password });
         await this.props.login('/api/v1/rest-auth/login/', data);
-        let { status, token } = this.props.response;
+        let { status } = this.props.response;
+        let { token } = this.props.response.data;
         console.log('[login] - HTTP Status Code: ' + status);
         switch (Number(status)) {
             case 200:

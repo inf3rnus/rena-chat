@@ -25,13 +25,13 @@ export class UserSetup extends Component {
         let data = this.createFormData({ username: this.state.username, password: this.state.password });
         await this.props.postHttp('/api/v1/rest-auth/login/', data);
         let { status } = this.props.response;
-        let { token } = this.props.response.data;
-        console.log('[login] - HTTP Status Code: ' + status);
+        console.log('[login] - HTTP Status Code: ' + this.props.response.status);
         switch (Number(status)) {
             case 200:
+                let { token } = this.props.response.data;
                 this.props.screenProps.authToken = token;
                 await AsyncStorage.setItem('authToken', token);
-                console.log('[login] - Login key is: ' + token);
+                console.log('[login] - Login key is: ' + this.props.jwt_token);
                 this.props.screenProps.username = this.state.username;
                 this.props.navigation.navigate('Profile');
                 break;
@@ -62,7 +62,6 @@ export class UserSetup extends Component {
     }
 
     renderActivityIndicator() {
-        console.log('LOGIN: Loading variable is: ' + this.props.loading);
         if (this.props.loading) {
             return (
                 <ActivityIndicator
@@ -135,8 +134,10 @@ export class UserSetup extends Component {
 const mapStateToProps = state => {
     let response = state.response;
     let loading = state.loading;
+    let jwt_token = state.jwt_token;
     return {
         loading: loading,
+        jwt_token: jwt_token,
         response: response
     };
 };

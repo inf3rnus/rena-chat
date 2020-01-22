@@ -9,14 +9,26 @@ export const POST_FAIL = 'POST_FAIL';
 export default function reducer(state = {}, action) {
     switch (action.type) {
         case POST:
-            return { ...state, loading: true };
+            return {
+                ...state,
+                loading: true
+            };
         case POST_SUCCESS:
-            return { ...state, loading: false, response: action.payload };
+            return {
+                ...state,
+                loading: false,
+                response: action.payload,
+                jwt_token: action.payload.data.token
+            };
         case POST_FAIL:
             return {
                 ...state,
                 loading: false,
-                response: action.error
+                response: {
+                    ...action.error,
+                    // Middleware embeds status code on failure inside of the message property string.
+                    status: action.error.message.match(/\d+/g)
+                }
             };
         default:
             return state;
@@ -29,11 +41,11 @@ export function postHttp(url, data) {
         payload: {
             request: {
                 data: data,
-                headers: {'Content-Type': 'multipart/form-data' },
+                headers: { 'Content-Type': 'multipart/form-data' },
                 method: 'post',
                 url: url,
             }
-            
+
         }
     };
 }

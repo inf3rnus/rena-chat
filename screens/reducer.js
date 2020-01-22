@@ -6,19 +6,24 @@ export const POST = 'POST';
 export const POST_SUCCESS = 'POST_SUCCESS';
 export const POST_FAIL = 'POST_FAIL';
 
-export default function reducer(state = {}, action) {
+export default function reducer(state = {baseURL: 'http://rena-chat.herokuapp.com'}, action) {
     switch (action.type) {
         case GET_PROFILE:
             return {
                 ...state,
-                loading: true
+                loading: true,            
             };
         case GET_PROFILE_SUCCESS:
             return {
                 ...state,
                 loading: false,
                 response: action.payload,
-                jwt_token: action.payload.data.token
+                profile: {
+                    bio: action.payload.bio,
+                    profile_picture: action.payload.profile_picture,
+                    username: action.payload.username,
+                    pk: action.payload.pk
+                }
             };
         case GET_PROFILE_FAIL:
             return {

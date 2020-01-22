@@ -23,7 +23,8 @@ const mapStateToProps = state => {
 };
 
 const mapDispatchToProps = {
-    postHttp
+    getHttp,
+    postHttp,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ProfileScreen);

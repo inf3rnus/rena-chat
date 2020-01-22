@@ -150,9 +150,7 @@ export class UserRegistration extends Component {
 
 // Refers to the Redux state
 const mapStateToProps = state => {
-    let response = state.response;
-    let loading = state.loading;
-    let jwt_token = state.jwt_token;
+    let { loading, jwt_token, response } = state;
     return {
         loading: loading,
         jwt_token: jwt_token,

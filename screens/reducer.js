@@ -27,7 +27,7 @@ export default function reducer(state = {}, action) {
                 response: {
                     ...action.error,
                     // Middleware embeds status code on failure inside of the message property string.
-                    status: action.error.message.match(/\d+/g)
+                    status: action.error.response.status
                 }
             };
         default:

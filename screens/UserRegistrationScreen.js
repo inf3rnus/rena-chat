@@ -35,6 +35,7 @@ export class UserSetup extends Component {
                 let { token } = this.props.response.data;
                 this.props.screenProps.authToken = token;
                 console.log('[login] - Login key is: ' + this.props.screenProps.authToken);
+                this.props.screenProps.username = this.state.username;
                 Alert.alert('Success', "Your account has successfully been created. You are now logged in!");
                 const resetAction = StackActions.reset({
                     index: 0,
@@ -45,10 +46,16 @@ export class UserSetup extends Component {
                 this.props.navigation.dispatch(resetAction);
                 break;
             case 400:
-                Alert.alert('We couldn\'t create your account');
+                let _response = JSON.parse(this.props.response.response.request._response);
+                let error_message = _response[Object.keys(_response)][0];
+                console.log('[login] - HTTP Error: ' + JSON.stringify(this.props.response.status));
+                Alert.alert('We couldn\'t create your account', error_message);
                 break;
             case 401:
-                Alert.alert('We couldn\'t create your account');
+                let _response2 = JSON.parse(this.props.response.response.request._response);
+                let error_message2 = _response2[Object.keys(_response2)][0];
+                console.log('[login] - HTTP Error: ' + JSON.stringify(this.props.response.status));
+                Alert.alert('We couldn\'t create your account', error_message2);
                 break;
             default:
                 Alert.alert('Oops, something went wrong', 'Something went wrong, please try logging in again in a couple of minutes.')

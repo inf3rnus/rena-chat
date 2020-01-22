@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import { ActivityIndicator, Alert, AsyncStorage, FlatList, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View, Button, Platform } from 'react-native';
+import { connect } from 'react-redux';
+import { getHttp, postHttp } from './reducer';
 import ImagePicker from 'react-native-image-picker';
 import { TextInput } from 'react-native-gesture-handler';
 import RNFetchBlob from 'rn-fetch-blob';
@@ -8,7 +10,25 @@ import RNFetchBlob from 'rn-fetch-blob';
 
 const HOST = 'http://rena-chat.herokuapp.com';
 
-export default class ProfileScreen extends Component {
+// Refers to the Redux state
+const mapStateToProps = state => {
+    let response = state.response;
+    let loading = state.loading;
+    let jwt_token = state.jwt_token;
+    return {
+        loading: loading,
+        jwt_token: jwt_token,
+        response: response
+    };
+};
+
+const mapDispatchToProps = {
+    postHttp
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(ProfileScreen);
+
+export class ProfileScreen extends Component {
 
     constructor(props) {
         super(props)

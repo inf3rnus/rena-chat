@@ -265,18 +265,12 @@ export class ProfileScreen extends Component {
 
     async removePendingFriend(friend_username) {
         let data = this.createFormData({ username: friend_username });
-        console.log('[removePendingFriend] - User auth token is: ' + this.props.screenProps.authToken + ' removed pending friend is: ' + this.state.confirm_friend_text + ' Form data: ' + JSON.stringify(data));
-        const myHeaders = new Headers({
-            'Authorization': 'JWT ' + this.props.screenProps.authToken
+        console.log('[removePendingFriend] - User auth token is: ' + this.props.jwt_token + ' removed pending friend is: ' + this.state.confirm_friend_text + ' Form data: ' + JSON.stringify(data));
+        const headers = new Headers({
+            'Authorization': 'JWT ' + this.props.jwt_token
         });
-        var options = {
-            method: 'POST',
-            headers: myHeaders,
-            body: data
-        }
-        let response = await fetch(HOST + '/api/v1/friends/remove_pending_friend', options);
-        let responseJSON = await response.json();
-        console.log('[removePendingFriend] - Pending friend: ' + friend_username + ' for user: ' + this.props.screenProps.username + ' Result: ' + JSON.stringify(responseJSON.success));
+        await this.props.postRemovePendingFriend('/api/v1/friends/remove_pending_friend', headers, data);
+        console.log('[removePendingFriend] - Pending friend: ' + friend_username + ' for user: ' + this.props.profile.username + ' Result: ' + JSON.stringify(this.props.response.success));
         Alert.alert(friend_username + ' removed', 'You have removed ' + friend_username + ' from your friends list.');
         // Don't query the server again in the future, just add them to the friends array.
         this.getPendingFriends();

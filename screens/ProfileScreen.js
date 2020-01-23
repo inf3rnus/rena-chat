@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { ActivityIndicator, Alert, AsyncStorage, FlatList, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View, Button, Platform } from 'react-native';
 import { connect } from 'react-redux';
-import { getHttp, postHttp, setProfilePictureLocalPath } from './reducer';
+import { getHttp, getFriends, postHttp, setFriendPictureLocalPath, setProfilePictureLocalPath } from './reducer';
 import ImagePicker from 'react-native-image-picker';
 import { TextInput } from 'react-native-gesture-handler';
 import RNFetchBlob from 'rn-fetch-blob';
@@ -81,25 +81,20 @@ export class ProfileScreen extends Component {
     }
 
     async getFriends() {
-        const myHeaders = new Headers({
+        const headers = new Headers({
             'Content-Type': 'application/json',
-            'Authorization': 'JWT ' + this.props.screenProps.authToken
+            'Authorization': 'JWT ' + this.props.jwt_token
         });
-        var options = {
-            method: 'GET',
-            headers: myHeaders
-        }
-        let response = await fetch(HOST + '/api/v1/friends/get_friends', options);
-        let responseJSON = await response.json();
-        console.log('[getFriends] - Friends for user: ' + this.props.screenProps.username + ' ' + JSON.stringify(responseJSON));
+
+        await this.props.getFriends('/api/v1/friends/get_friends', headers);
+
+        console.log('[getFriends] - Friends for user: ' + this.props.profile.username + ' ' + JSON.stringify(this.props.friends));
 
         // Retrieve pictures from the server and format them so that they are readily downloaded
-
-        var friends = [];
-        responseJSON.map(async (friend) => {
-            console.log('Current friend\'s details: ' + JSON.stringify(friend));
+        this.props.friends.forEach(async (friend, index) => {
+            console.log('[getFriends] - Current friend\'s details: ' + JSON.stringify(friend));
             console.log('[getFriends] - Picture is equal to: ' + friend.profile_picture);
-            let picturePath = null;
+            let localProfilePicturePath = null;
 
             if (friend.profile_picture != null) {
                 let filename = friend.profile_picture.split('/').pop();
@@ -115,19 +110,18 @@ export class ProfileScreen extends Component {
                     .then((res) => {
                         // the path should be dirs.DocumentDir + 'path-to-file.anything'
                         console.log('[getFriends] - Picture file was saved to: ' + res.path());
-                        picturePath = res.path();
+                        localProfilePicturePath = res.path();
                     })
                     .catch((e) => { console.log('[getFriends] - Blob fetch failed for the following reason: ' + e.message) });
             }
-            friend.profile_picture = picturePath;
-            friends.push(friend);
-            this.setState(() => ({
-                friends: friends
-            }));
+            this.props.setFriendPictureLocalPath(localProfilePicturePath, index)
+            // this.setState(() => ({
+            //     friends: friends
+            // }));
         });
-        this.setState(() => ({
-            friends: friends
-        }));
+        // this.setState(() => ({
+        //     friends: friends
+        // }));
     }
     async getPendingFriends() {
         const myHeaders = new Headers({
@@ -368,7 +362,7 @@ export class ProfileScreen extends Component {
             busy: true
         }))
         await Promise.all([
-            //this.getProfile().catch((e) => console.log('Error: ' + e.message)),
+            this.getProfile().catch((e) => console.log('Error: ' + e.message)),
             this.getFriends().catch((e) => console.log('Error: ' + e.message)),
             // this.getPendingFriends().catch((e) => console.log('Error: ' + e.message)),
         ]);
@@ -441,7 +435,7 @@ export class ProfileScreen extends Component {
                                     <View style={styles.postContentContainer}>
                                         <View style={styles.postPictureGroupContainer}>
                                             <View style={styles.postPictureContainer}>
-                                                {item.profile_picture !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture : item.profile_picture }} /> : null}
+                                                {item.profile_picture_local_path_local_path_local_path_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture_local_path_local_path_local_path_local_path : item.profile_picture_local_path_local_path_local_path }} /> : null}
                                             </View>
                                             <Text>{item.username}</Text>
                                         </View>
@@ -557,12 +551,12 @@ export class ProfileScreen extends Component {
 
                             <FlatList
                                 style={styles.postsContainer}
-                                data={this.state.friends}
+                                data={this.props.friends}
                                 renderItem={({ item, index, separators }) => (
                                     <View style={styles.postContentContainer}>
                                         <View style={styles.postPictureGroupContainer}>
                                             <View style={styles.postPictureContainer}>
-                                                {item.profile_picture !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture : item.profile_picture }} /> : null}
+                                                {item.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture_local_path : item.profile_picture_local_path }} /> : null}
                                             </View>
                                             <Text>{item.username}</Text>
                                         </View>
@@ -633,12 +627,12 @@ export class ProfileScreen extends Component {
 
                             <FlatList
                                 style={styles.postsContainer}
-                                data={this.state.friends}
+                                data={this.props.friends}
                                 renderItem={({ item, index, separators }) => (
                                     <View style={styles.postContentContainer}>
                                         <View style={styles.postPictureGroupContainer}>
                                             <View style={styles.postPictureContainer}>
-                                                {item.profile_picture !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture : item.profile_picture }} /> : null}
+                                                {item.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture_local_path : item.profile_picture_local_path }} /> : null}
                                             </View>
                                             <Text>{item.username}</Text>
                                         </View>
@@ -668,8 +662,10 @@ const mapStateToProps = state => {
     let loading = state.loading;
     let jwt_token = state.jwt_token;
     let profile = state.profile;
+    let friends = state.friends;
 
     return {
+        friends: friends,
         loading: loading,
         jwt_token: jwt_token,
         profile: profile,
@@ -679,7 +675,9 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = {
     getHttp,
+    getFriends,
     postHttp,
+    setFriendPictureLocalPath,
     setProfilePictureLocalPath
 };
 

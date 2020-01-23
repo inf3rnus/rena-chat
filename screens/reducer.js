@@ -2,6 +2,8 @@ export const GET_FRIENDS = 'GET_FRIENDS';
 export const GET_FRIENDS_SUCCESS = 'GET_FRIENDS_SUCCESS';
 export const GET_FRIENDS_FAIL = 'GET_FRIENDS_FAIL';
 
+export const SET_FRIEND_PROFILE_PICTURE_LOCAL_PATH = 'SET_FRIEND_PROFILE_PICTURE_LOCAL_PATH';
+
 export const SET_PROFILE_PICTURE_LOCAL_PATH = 'SET_PROFILE_PICTURE_LOCAL_PATH';
 
 export const GET_PROFILE = 'GET_PROFILE';
@@ -12,20 +14,47 @@ export const POST = 'POST';
 export const POST_SUCCESS = 'POST_SUCCESS';
 export const POST_FAIL = 'POST_FAIL';
 
-export default function reducer(state = {baseURL: 'http://rena-chat.herokuapp.com', profile: {}}, action) {
+export default function reducer(state = { baseURL: 'http://rena-chat.herokuapp.com', profile: {} }, action) {
     switch (action.type) {
-        case SET_PROFILE_PICTURE_LOCAL_PATH:
+        case GET_FRIENDS:
             return {
                 ...state,
-                profile: {
-                    ...state.profile,
-                    profile_picture_local_path: action.payload.profile_picture_local_path
-                }
+                loading: true
             }
+        case GET_FRIENDS_SUCCESS:
+            return {
+                ...state,
+                loading: false,
+                friends: action.payload.data
+            }
+        case GET_FRIENDS_FAIL:
+            return {
+                ...state,
+                loading: false,
+                response: {
+                    ...action.error,
+                    // Middleware embeds status code on failure inside of the message property string.
+                    status: action.error.response.status
+                }
+            };
+        case SET_FRIEND_PROFILE_PICTURE_LOCAL_PATH:
+            let { index, profile_picture_local_path } = action.payload;
+            // Extract target friend by friends array index and create the property profile_picture_local_path
+            // Setting it to the profile_picture_local_path in the paylod.
+            let targetFriend = state.friends[index];
+            targetFriend.profile_picture_local_path = profile_picture_local_path;
+            return {
+                ...state,
+                friends: [
+                    ...state.friends.slice(0, index),
+                    targetFriend,
+                    ...state.friends.slice(index + 1)
+                ]
+            };
         case GET_PROFILE:
             return {
                 ...state,
-                loading: true,            
+                loading: true,
             };
         case GET_PROFILE_SUCCESS:
             return {
@@ -69,6 +98,14 @@ export default function reducer(state = {baseURL: 'http://rena-chat.herokuapp.co
                     status: action.error.response.status
                 }
             };
+        case SET_PROFILE_PICTURE_LOCAL_PATH:
+            return {
+                ...state,
+                profile: {
+                    ...state.profile,
+                    profile_picture_local_path: action.payload.profile_picture_local_path
+                }
+            }
         default:
             return state;
     }
@@ -103,7 +140,31 @@ export function getHttp(url, headers) {
     };
 }
 
-export function setProfilePictureLocalPath(path){
+export function getFriends(url, headers) {
+    return {
+        type: GET_FRIENDS,
+        payload: {
+            request: {
+                headers: headers,
+                method: 'get',
+                url: url,
+            }
+
+        }
+    };
+}
+
+export function setFriendPictureLocalPath(path, index) {
+    return {
+        type: SET_FRIEND_PROFILE_PICTURE_LOCAL_PATH,
+        payload: {
+            index,
+            profile_picture_local_path: path
+        }
+    };
+}
+
+export function setProfilePictureLocalPath(path) {
     return {
         type: SET_PROFILE_PICTURE_LOCAL_PATH,
         payload: {

@@ -6,12 +6,6 @@ import ImagePicker from 'react-native-image-picker';
 import { TextInput } from 'react-native-gesture-handler';
 import RNFetchBlob from 'rn-fetch-blob';
 
-//const HOST = 'http://10.0.2.2:8000';
-
-const HOST = 'http://rena-chat.herokuapp.com';
-
-
-
 export class ProfileScreen extends Component {
 
     constructor(props) {
@@ -20,18 +14,12 @@ export class ProfileScreen extends Component {
             profile: {
 
             },
-            profile_picture_server_path: null,
             topBarOption: 'friends',
-            friends: [],
-            pending_friends: [],
-            requested_friends: [],
-            busy: false,
+
             request_friend_text: null,
             confirm_friend_text: null,
 
             isEditingBio: false,
-
-            busy: false,
         }
         this.changeBodyOption = this.changeBodyOption.bind(this);
         this.getProfile = this.getProfile.bind(this);
@@ -309,9 +297,6 @@ export class ProfileScreen extends Component {
             this.getFriends().catch((e) => console.log('Error: ' + e.message)),
             this.getPendingFriends().catch((e) => console.log('Error: ' + e.message)),
         ]);
-        this.setState(() => ({
-            busy: false
-        }))
     }
 
     renderActivityIndicator() {

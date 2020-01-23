@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { ActivityIndicator, Alert, AsyncStorage, FlatList, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View, Button, Platform } from 'react-native';
 import { connect } from 'react-redux';
-import { getHttp, getFriends, getPendingFriends, postHttp, setFriendPictureLocalPath, setPendingFriendPictureLocalPath, setProfilePictureLocalPath } from './reducer';
+import { getHttp, getFriends, getPendingFriends, postHttp, postRequestFriend, postConfirmFriend, postRemoveFriend, postSetProfileBio, postSetProfilePicture, postRemovePendingFriend, setFriendPictureLocalPath, setPendingFriendPictureLocalPath, setProfilePictureLocalPath } from './reducer';
 import ImagePicker from 'react-native-image-picker';
 import { TextInput } from 'react-native-gesture-handler';
 import RNFetchBlob from 'rn-fetch-blob';
@@ -155,56 +155,40 @@ export class ProfileScreen extends Component {
 
     async requestFriend(friend_username) {
         let data = this.createFormData({ username: friend_username });
-        console.log('[requestFriend] - User auth token is: ' + this.props.screenProps.authToken + ' requested friend is: ' + this.state.request_friend_text + ' Form data: ' + JSON.stringify(data));
+        console.log('[requestFriend] - User auth token is: ' + this.props.jwt_token + ' requested friend is: ' + this.state.request_friend_text + ' Form data: ' + JSON.stringify(data));
         // Careful of the headers, make sure your content type is appropriate....
-        const myHeaders = new Headers({
-            'Authorization': 'JWT ' + this.props.screenProps.authToken
+        const headers = new Headers({
+            'Authorization': 'JWT ' + this.props.jwt_token
         });
-        var options = {
-            method: 'POST',
-            headers: myHeaders,
-            body: data
-        }
-        let response = await fetch(HOST + '/api/v1/friends/request_friend', options);
-        let responseJSON = await response.json();
-        console.log('[requestFriend] - Requested friend: ' + friend_username + ' for user: ' + this.props.screenProps.username + ' Result: ' + JSON.stringify(responseJSON.success));
+
+        await this.props.postRequestFriend('/api/v1/friends/request_friend', headers, data);
+
+        console.log('[requestFriend] - Requested friend: ' + friend_username + ' for user: ' + this.props.profile.username + ' Result: ' + JSON.stringify(this.props.response.success));
         Alert.alert(friend_username + ' friend request sent!', 'You have requested to be friends with ' + friend_username + '!');
     }
 
     async confirmFriend(friend_username) {
         let data = this.createFormData({ username: friend_username });
-        console.log('[confirmFriend] - User auth token is: ' + this.props.screenProps.authToken + ' confirmed friend is: ' + this.state.confirm_friend_text + ' Form data: ' + JSON.stringify(data));
-        const myHeaders = new Headers({
-            'Authorization': 'JWT ' + this.props.screenProps.authToken
+        console.log('[confirmFriend] - User auth token is: ' + this.props.jwt_token + ' confirmed friend is: ' + this.state.confirm_friend_text + ' Form data: ' + JSON.stringify(data));
+        const headers = new Headers({
+            'Authorization': 'JWT ' + this.props.jwt_token
         });
-        var options = {
-            method: 'POST',
-            headers: myHeaders,
-            body: data
-        }
-        let response = await fetch(HOST + '/api/v1/friends/confirm_friend', options);
-        let responseJSON = await response.json();
-        console.log('[confirmFriend] - Confirmed friend: ' + friend_username + ' for user: ' + this.props.screenProps.username + ' Result: ' + JSON.stringify(responseJSON.success));
+        this.props.postConfirmFriend('/api/v1/friends/confirm_friend', headers, data);
+        console.log('[confirmFriend] - Confirmed friend: ' + friend_username + ' for user: ' + this.props.profile.username + ' Result: ' + JSON.stringify(this.props.response.status));
         Alert.alert(friend_username + ' added!', 'You have added ' + friend_username + ' to your friends list!');
         // Don't query the server again in the future, just add them to the friends array.
-        await this.getFriends();
         await this.getPendingFriends();
+        await this.getFriends();
     }
 
     async removeFriend(friend_username) {
         let data = this.createFormData({ username: friend_username });
-        console.log('[removeFriend] - User auth token is: ' + this.props.screenProps.authToken + ' removed friend is: ' + this.state.confirm_friend_text + ' Form data: ' + JSON.stringify(data));
-        const myHeaders = new Headers({
-            'Authorization': 'JWT ' + this.props.screenProps.authToken
+        console.log('[removeFriend] - User auth token is: ' + this.props.jwt_token + ' removed friend is: ' + this.state.confirm_friend_text + ' Form data: ' + JSON.stringify(data));
+        const headers = new Headers({
+            'Authorization': 'JWT ' + this.props.jwt_token
         });
-        var options = {
-            method: 'POST',
-            headers: myHeaders,
-            body: data
-        }
-        let response = await fetch(HOST + '/api/v1/friends/remove_friend', options);
-        let responseJSON = await response.json();
-        console.log('[removeFriend] - Confirmed friend: ' + friend_username + ' for user: ' + this.props.screenProps.username + ' Result: ' + JSON.stringify(responseJSON.success));
+        await this.props.postRemoveFriend('/api/v1/friends/remove_friend', headers, data);
+        console.log('[removeFriend] - Confirmed friend: ' + friend_username + ' for user: ' + this.props.profile.username + ' Result: ' + JSON.stringify(this.props.response.success));
         Alert.alert(friend_username + ' removed', 'You have removed ' + friend_username + ' from your friends list.');
         // Don't query the server again in the future, just add them to the friends array.
         await this.getFriends();
@@ -344,8 +328,8 @@ export class ProfileScreen extends Component {
             busy: true
         }))
         await Promise.all([
-            //this.getProfile().catch((e) => console.log('Error: ' + e.message)),
-            //this.getFriends().catch((e) => console.log('Error: ' + e.message)),
+            this.getProfile().catch((e) => console.log('Error: ' + e.message)),
+            this.getFriends().catch((e) => console.log('Error: ' + e.message)),
             this.getPendingFriends().catch((e) => console.log('Error: ' + e.message)),
         ]);
         this.setState(() => ({
@@ -661,7 +645,15 @@ const mapDispatchToProps = {
     getHttp,
     getFriends,
     getPendingFriends,
+
     postHttp,
+    postConfirmFriend,
+    postRemoveFriend,
+    postRemovePendingFriend,
+    postRequestFriend,
+    postSetProfileBio,
+    postSetProfilePicture,
+
     setFriendPictureLocalPath,
     setPendingFriendPictureLocalPath,
     setProfilePictureLocalPath

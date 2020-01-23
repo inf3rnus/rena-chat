@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { ActivityIndicator, Alert, AsyncStorage, FlatList, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View, Button, Platform } from 'react-native';
 import { connect } from 'react-redux';
-import { getHttp, getFriends, postHttp, setFriendPictureLocalPath, setProfilePictureLocalPath } from './reducer';
+import { getHttp, getFriends, getPendingFriends, postHttp, setFriendPictureLocalPath, setPendingFriendPictureLocalPath, setProfilePictureLocalPath } from './reducer';
 import ImagePicker from 'react-native-image-picker';
 import { TextInput } from 'react-native-gesture-handler';
 import RNFetchBlob from 'rn-fetch-blob';
@@ -45,7 +45,7 @@ export class ProfileScreen extends Component {
         this.startChat = this.startChat.bind(this);
         this.renderActivityIndicator = this.renderActivityIndicator.bind(this);
     }
-    
+
     async getProfile() {
         const headers = new Headers({
             'Content-Type': 'application/json',
@@ -115,32 +115,21 @@ export class ProfileScreen extends Component {
                     .catch((e) => { console.log('[getFriends] - Blob fetch failed for the following reason: ' + e.message) });
             }
             this.props.setFriendPictureLocalPath(localProfilePicturePath, index)
-            // this.setState(() => ({
-            //     friends: friends
-            // }));
         });
-        // this.setState(() => ({
-        //     friends: friends
-        // }));
     }
     async getPendingFriends() {
-        const myHeaders = new Headers({
+        const headers = new Headers({
             'Content-Type': 'application/json',
-            'Authorization': 'JWT ' + this.props.screenProps.authToken
+            'Authorization': 'JWT ' + this.props.jwt_token
         });
-        var options = {
-            method: 'GET',
-            headers: myHeaders
-        }
-        let response = await fetch(HOST + '/api/v1/friends/get_pending_friends', options);
-        let responseJSON = await response.json();
-        console.log('[getPendingFriends] - Friends for user: ' + this.props.screenProps.username + ' ' + JSON.stringify(responseJSON));
+        await this.props.getPendingFriends('/api/v1/friends/get_pending_friends', headers);
 
-        var friends = [];
-        responseJSON.map(async (friend) => {
+        console.log('[getPendingFriends] - Friends for user: ' + this.props.username + ' ' + JSON.stringify(this.props.pending_friends));
+
+        this.props.pending_friends.forEach(async (friend, index) => {
             console.log('Current friend\'s details: ' + JSON.stringify(friend));
             console.log('[getPendingFriends] - Picture is equal to: ' + friend.profile_picture);
-            let picturePath = null;
+            let localProfilePicturePath = null;
 
             if (friend.profile_picture != null) {
                 let filename = friend.profile_picture.split('/').pop();
@@ -156,19 +145,12 @@ export class ProfileScreen extends Component {
                     .then((res) => {
                         // the path should be dirs.DocumentDir + 'path-to-file.anything'
                         console.log('[getPendingFriends] - Picture file was saved to: ' + res.path());
-                        picturePath = res.path();
+                        localProfilePicturePath = res.path();
                     })
                     .catch((e) => { console.log('[getPendingFriends] - Blob fetch failed for the following reason: ' + e.message) });
             }
-            friend.profile_picture = picturePath;
-            friends.push(friend);
-            this.setState(() => ({
-                pending_friends: friends
-            }));
+            this.props.setPendingFriendPictureLocalPath(localProfilePicturePath, index)
         });
-        this.setState(() => ({
-            pending_friends: friends
-        }));
     }
 
     async requestFriend(friend_username) {
@@ -362,9 +344,9 @@ export class ProfileScreen extends Component {
             busy: true
         }))
         await Promise.all([
-            this.getProfile().catch((e) => console.log('Error: ' + e.message)),
-            this.getFriends().catch((e) => console.log('Error: ' + e.message)),
-            // this.getPendingFriends().catch((e) => console.log('Error: ' + e.message)),
+            //this.getProfile().catch((e) => console.log('Error: ' + e.message)),
+            //this.getFriends().catch((e) => console.log('Error: ' + e.message)),
+            this.getPendingFriends().catch((e) => console.log('Error: ' + e.message)),
         ]);
         this.setState(() => ({
             busy: false
@@ -425,17 +407,17 @@ export class ProfileScreen extends Component {
                         null
                 }
                 {
-                    this.state.pending_friends.length > 0 ?
+                    this.props.pending_friends.length > 0 ?
                         <View>
                             <Text style={{ fontSize: 18, marginLeft: '1%', fontWeight: 'bold', marginBottom: 10 }}>Pending friends</Text>
                             <FlatList
                                 style={{ marginBottom: 10 }}
-                                data={this.state.pending_friends}
+                                data={this.props.pending_friends}
                                 renderItem={({ item, index, separators }) => (
                                     <View style={styles.postContentContainer}>
                                         <View style={styles.postPictureGroupContainer}>
                                             <View style={styles.postPictureContainer}>
-                                                {item.profile_picture_local_path_local_path_local_path_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture_local_path_local_path_local_path_local_path : item.profile_picture_local_path_local_path_local_path }} /> : null}
+                                                {item.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture_local_path : item.profile_picture_local_path }} /> : null}
                                             </View>
                                             <Text>{item.username}</Text>
                                         </View>
@@ -663,9 +645,11 @@ const mapStateToProps = state => {
     let jwt_token = state.jwt_token;
     let profile = state.profile;
     let friends = state.friends;
+    let pending_friends = state.pending_friends;
 
     return {
         friends: friends,
+        pending_friends,
         loading: loading,
         jwt_token: jwt_token,
         profile: profile,
@@ -676,8 +660,10 @@ const mapStateToProps = state => {
 const mapDispatchToProps = {
     getHttp,
     getFriends,
+    getPendingFriends,
     postHttp,
     setFriendPictureLocalPath,
+    setPendingFriendPictureLocalPath,
     setProfilePictureLocalPath
 };
 

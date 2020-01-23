@@ -2,7 +2,12 @@ export const GET_FRIENDS = 'GET_FRIENDS';
 export const GET_FRIENDS_SUCCESS = 'GET_FRIENDS_SUCCESS';
 export const GET_FRIENDS_FAIL = 'GET_FRIENDS_FAIL';
 
+export const GET_PENDING_FRIENDS = 'GET_PENDING_FRIENDS_FAIL';
+export const GET_PENDING_FRIENDS_SUCCESS = 'GET_PENDING_FRIENDS_FAIL_SUCCESS';
+export const GET_PENDING_FRIENDS_FAIL = 'GET_PENDING_FRIENDS_FAIL_FAIL';
+
 export const SET_FRIEND_PROFILE_PICTURE_LOCAL_PATH = 'SET_FRIEND_PROFILE_PICTURE_LOCAL_PATH';
+export const SET_PENDING_FRIEND_PROFILE_PICTURE_LOCAL_PATH = 'SET_PENDING_FRIEND_PROFILE_PICTURE_LOCAL_PATH';
 
 export const SET_PROFILE_PICTURE_LOCAL_PATH = 'SET_PROFILE_PICTURE_LOCAL_PATH';
 
@@ -37,7 +42,28 @@ export default function reducer(state = { baseURL: 'http://rena-chat.herokuapp.c
                     status: action.error.response.status
                 }
             };
-        case SET_FRIEND_PROFILE_PICTURE_LOCAL_PATH:
+        case GET_PENDING_FRIENDS:
+            return {
+                ...state,
+                loading: true
+            }
+        case GET_PENDING_FRIENDS_SUCCESS:
+            return {
+                ...state,
+                loading: false,
+                pending_friends: action.payload.data
+            }
+        case GET_PENDING_FRIENDS_FAIL:
+            return {
+                ...state,
+                loading: false,
+                response: {
+                    ...action.error,
+                    // Middleware embeds status code on failure inside of the message property string.
+                    status: action.error.response.status
+                }
+            };
+        case SET_FRIEND_PROFILE_PICTURE_LOCAL_PATH: {
             let { index, profile_picture_local_path } = action.payload;
             // Extract target friend by friends array index and create the property profile_picture_local_path
             // Setting it to the profile_picture_local_path in the paylod.
@@ -51,6 +77,22 @@ export default function reducer(state = { baseURL: 'http://rena-chat.herokuapp.c
                     ...state.friends.slice(index + 1)
                 ]
             };
+        }
+        case SET_PENDING_FRIEND_PROFILE_PICTURE_LOCAL_PATH: {
+            let { index, profile_picture_local_path } = action.payload;
+            // Extract target friend by friends array index and create the property profile_picture_local_path
+            // Setting it to the profile_picture_local_path in the paylod.
+            let targetFriend = state.pending_friends[index];
+            targetFriend.profile_picture_local_path = profile_picture_local_path;
+            return {
+                ...state,
+                pending_friends: [
+                    ...state.pending_friends.slice(0, index),
+                    targetFriend,
+                    ...state.pending_friends.slice(index + 1)
+                ]
+            };
+        }
         case GET_PROFILE:
             return {
                 ...state,
@@ -154,6 +196,20 @@ export function getFriends(url, headers) {
     };
 }
 
+export function getPendingFriends(url, headers) {
+    return {
+        type: GET_PENDING_FRIENDS,
+        payload: {
+            request: {
+                headers: headers,
+                method: 'get',
+                url: url,
+            }
+
+        }
+    }
+}
+
 export function setFriendPictureLocalPath(path, index) {
     return {
         type: SET_FRIEND_PROFILE_PICTURE_LOCAL_PATH,
@@ -162,6 +218,16 @@ export function setFriendPictureLocalPath(path, index) {
             profile_picture_local_path: path
         }
     };
+}
+
+export function setPendingFriendPictureLocalPath(path, index) {
+    return {
+        type: SET_PENDING_FRIEND_PROFILE_PICTURE_LOCAL_PATH,
+        payload: {
+            index,
+            profile_picture_local_path: path
+        }
+    }
 }
 
 export function setProfilePictureLocalPath(path) {

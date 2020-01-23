@@ -229,6 +229,27 @@ export default function reducer(state = { baseURL: 'http://rena-chat.herokuapp.c
                     status: action.error.response.status
                 }
             }
+        case POST_SET_PROFILE_PICTURE:
+            return {
+                ...state,
+                loading: true,
+            }
+        case POST_SET_PROFILE_PICTURE_SUCCESS:
+            return {
+                ...state,
+                loading: false,
+                response: action.payload.data,
+            };
+        case POST_SET_PROFILE_PICTURE_FAIL:
+            return {
+                ...state,
+                loading: false,
+                response: {
+                    ...action.error,
+                    // Middleware embeds status code on failure inside of the message property string.
+                    status: action.error.response.status
+                }
+            }
         case SET_PROFILE_PICTURE_LOCAL_PATH:
             return {
                 ...state,

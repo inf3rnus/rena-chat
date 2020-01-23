@@ -226,25 +226,14 @@ export class ProfileScreen extends Component {
                 pictureDetails.name = response.fileName;
 
 
-                let data = this.createFormData({ profile_picture: pictureDetails, username: this.props.screenProps.username });
-                const myHeaders = new Headers({
-                    'Authorization': 'JWT ' + this.props.screenProps.authToken
+                let data = this.createFormData({ profile_picture: pictureDetails, username: this.props.profile.username });
+                const headers = new Headers({
+                    'Authorization': 'JWT ' + this.props.jwt_token
                 });
-                var options = {
-                    method: 'POST',
-                    headers: myHeaders,
-                    body: data
-                }
-                let serverResponse = await fetch(HOST + '/api/v1/users/set_profile_picture', options);
-                let responseJSON = await serverResponse.json();
+                await this.props.postSetProfilePicture('/api/v1/users/set_profile_picture', headers, data);
+                
                 Alert.alert('Success', 'You have successfully added your new profile picture!');
-
-                this.setState({
-                    profile: {
-                        ...this.state.profile,
-                        profile_picture: Platform.OS == 'android' ? response.path : response.uri
-                    }
-                });
+                this.props.setProfilePictureLocalPath(Platform.OS == 'android' ? response.path : response.uri);
             }
         });
     }

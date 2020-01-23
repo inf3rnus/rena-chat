@@ -1,3 +1,5 @@
+export const SET_PROFILE_PICTURE_LOCAL_PATH = 'SET_PROFILE_PICTURE_LOCAL_PATH';
+
 export const GET_PROFILE = 'GET_PROFILE';
 export const GET_PROFILE_SUCCESS = 'GET_PROFILE_SUCCESS';
 export const GET_PROFILE_FAIL = 'GET_PROFILE_FAIL';
@@ -6,8 +8,16 @@ export const POST = 'POST';
 export const POST_SUCCESS = 'POST_SUCCESS';
 export const POST_FAIL = 'POST_FAIL';
 
-export default function reducer(state = {baseURL: 'http://rena-chat.herokuapp.com'}, action) {
+export default function reducer(state = {baseURL: 'http://rena-chat.herokuapp.com', profile: {}}, action) {
     switch (action.type) {
+        case SET_PROFILE_PICTURE_LOCAL_PATH:
+            return {
+                ...state,
+                profile: {
+                    ...state.profile,
+                    profile_picture_local_path: action.payload.profile_picture_local_path
+                }
+            }
         case GET_PROFILE:
             return {
                 ...state,
@@ -85,6 +95,15 @@ export function getHttp(url, headers) {
                 url: url,
             }
 
+        }
+    };
+}
+
+export function setProfilePictureLocalPath(path){
+    return {
+        type: SET_PROFILE_PICTURE_LOCAL_PATH,
+        payload: {
+            profile_picture_local_path: path
         }
     };
 }

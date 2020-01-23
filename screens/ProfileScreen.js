@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { ActivityIndicator, Alert, AsyncStorage, FlatList, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View, Button, Platform } from 'react-native';
 import { connect } from 'react-redux';
-import { getHttp, postHttp } from './reducer';
+import { getHttp, postHttp, setProfilePictureLocalPath } from './reducer';
 import ImagePicker from 'react-native-image-picker';
 import { TextInput } from 'react-native-gesture-handler';
 import RNFetchBlob from 'rn-fetch-blob';
@@ -45,19 +45,16 @@ export class ProfileScreen extends Component {
         this.startChat = this.startChat.bind(this);
         this.renderActivityIndicator = this.renderActivityIndicator.bind(this);
     }
-
+    
     async getProfile() {
         const headers = new Headers({
             'Content-Type': 'application/json',
             'Authorization': 'JWT ' + this.props.jwt_token
         });
 
-        console.log('[getProfile] - Firing.');
-
         await this.props.getHttp('/api/v1/users/get_current_profile', headers);
 
         console.log('[getProfile] - Current user profile\'s details: ' + JSON.stringify(this.props.profile));
-
         console.log('[getProfile] - Picture SERVER PATH equal to: ' + this.props.profile.profile_picture_server_path);
 
         let localPicturePath = null;
@@ -80,15 +77,7 @@ export class ProfileScreen extends Component {
                 })
                 .catch((e) => { console.log('[getProfile] - Blob fetch failed for the following reason: ' + e.message) });
         }
-
-        this.setState((prevState) => ({
-            profile: {
-                bio: this.props.profile.bio,
-                profile_picture: localPicturePath,
-                username: this.props.profile.username,
-                pk: this.props.profile.pk
-            }
-        }));
+        this.props.setProfilePictureLocalPath(localPicturePath);
     }
 
     async getFriends() {
@@ -528,7 +517,7 @@ export class ProfileScreen extends Component {
 
                             <View style={styles.profileBannerPictureGroupContainer}>
                                 <View style={styles.profileBannerPictureContainer}>
-                                    {this.state.profile.profile_picture !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + this.state.profile.profile_picture : this.state.profile.profile_picture }} /> : null}
+                                    {this.props.profile.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + this.props.profile.profile_picture_local_path : this.props.profile.profile_picture_local_path }} /> : null}
                                 </View>
                                 <TouchableOpacity onPress={this.setProfilePicture}>
                                     <Text style={styles.profileBannerUploadPhotoText}>Upload photo</Text>
@@ -538,7 +527,7 @@ export class ProfileScreen extends Component {
                             <View style={styles.profileBannerBodyContainer}>
 
                                 <View style={styles.profileBannerBodyNameContainer}>
-                                    <Text style={styles.profileBannerBodyName}>{this.state.profile.username}</Text>
+                                    <Text style={styles.profileBannerBodyName}>{this.props.profile.username}</Text>
                                 </View>
 
                                 {this.renderBioField(this.state.isEditingBio)}
@@ -602,7 +591,7 @@ export class ProfileScreen extends Component {
 
                             <View style={styles.profileBannerPictureGroupContainer}>
                                 <View style={styles.profileBannerPictureContainer}>
-                                    {this.state.profile.profile_picture !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + this.state.profile.profile_picture : this.state.profile.profile_picture }} /> : null}
+                                    {this.props.profile.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + this.props.profile.profile_picture_local_path : this.props.profile.profile_picture_local_path }} /> : null}
                                 </View>
                                 <TouchableOpacity onPress={this.setProfilePicture}>
                                     <Text style={styles.profileBannerUploadPhotoText}>Upload photo</Text>
@@ -612,7 +601,7 @@ export class ProfileScreen extends Component {
                             <View style={styles.profileBannerBodyContainer}>
 
                                 <View style={styles.profileBannerBodyNameContainer}>
-                                    <Text style={styles.profileBannerBodyName}>{this.state.profile.username}</Text>
+                                    <Text style={styles.profileBannerBodyName}>{this.props.profile.username}</Text>
                                 </View>
 
                                 {this.renderBioField(this.state.isEditingBio)}
@@ -691,6 +680,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = {
     getHttp,
     postHttp,
+    setProfilePictureLocalPath
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ProfileScreen);

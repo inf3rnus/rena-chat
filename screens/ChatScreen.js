@@ -16,7 +16,7 @@ export default class ChatScreen extends Component {
             user: this.props.navigation.state.params.user,
             user_message: null,
             message_image: null,
-            current_user_id: this.props.navigation.state.params.user_profile_id,
+            current_user_id: this.props.navigation.state.params.user._id,
             friend_user_id: this.props.navigation.state.params.friend_id,
             conversation_id: null,
             messages: [],
@@ -43,7 +43,7 @@ export default class ChatScreen extends Component {
         this.socket.onmessage = (e) => {
             let data = JSON.parse(e.data);
             // Determine if a conversation has been started
-            console.log('[onmessage] - Received the following object: ' + data.client_command);
+            console.log('[onmessage] - Received the following command: ' + data.client_command);
             switch (data.client_command) {
                 case 'start_chat':
                     console.log('[onmessage] - start_chat fired, data contents: ' + JSON.stringify(data));
@@ -95,9 +95,8 @@ export default class ChatScreen extends Component {
 
         responseJSON.results.forEach((message) => {
             var message_contents_object = JSON.parse(message.message_contents);
-            console.log('[getPreviousMessages] - Current API ID is: ' + JSON.stringify(message.id));
+            console.log('[getPreviousMessages] - Current Message ID from the API is: ' + JSON.stringify(message.id));
             message_contents_object._id = message.id;
-            console.log('[getPreviousMessages] - Current Message Content ID is: ' + typeof message_contents_object._id);
             message.message_contents = JSON.stringify(message_contents_object);
         
             lastMessages = [...lastMessages, message_contents_object];
@@ -110,6 +109,7 @@ export default class ChatScreen extends Component {
     }
 
     onSend(messages = []) {
+        console.log('[onSend] - Avatar server path is: ' + this.state.user.avatar);
         messages[0].user = this.state.user
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, messages),

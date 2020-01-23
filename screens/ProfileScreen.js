@@ -292,9 +292,9 @@ export class ProfileScreen extends Component {
             user_profile_id: this.state.profile.pk,
             // Send user object to Chat Screen so that the chat can use the user's profile information.
             user: {
-                _id: this.state.profile.pk,
-                name: this.state.profile.username,
-                avatar: this.state.profile_picture_server_path,
+                _id: this.props.profile.pk,
+                name: this.props.profile.username,
+                avatar: this.props.profile.profile_picture_server_path,
             }
         });
     }

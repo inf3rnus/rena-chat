@@ -1,4 +1,4 @@
-export const GET = 'GET_PROFILE';
+export const GET_PROFILE = 'GET_PROFILE';
 export const GET_PROFILE_SUCCESS = 'GET_PROFILE_SUCCESS';
 export const GET_PROFILE_FAIL = 'GET_PROFILE_FAIL';
 
@@ -19,10 +19,8 @@ export default function reducer(state = {baseURL: 'http://rena-chat.herokuapp.co
                 loading: false,
                 response: action.payload,
                 profile: {
-                    bio: action.payload.bio,
-                    profile_picture: action.payload.profile_picture,
-                    username: action.payload.username,
-                    pk: action.payload.pk
+                    ...action.payload.data,
+                    profile_picture_server_path: action.payload.data.profile_picture + state.baseURL,
                 }
             };
         case GET_PROFILE_FAIL:
@@ -82,8 +80,7 @@ export function getHttp(url, headers) {
         type: GET_PROFILE,
         payload: {
             request: {
-                data: data,
-                headers: { 'Content-Type': 'multipart/form-data' },
+                headers: headers,
                 method: 'get',
                 url: url,
             }

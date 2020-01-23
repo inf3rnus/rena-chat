@@ -10,24 +10,7 @@ import RNFetchBlob from 'rn-fetch-blob';
 
 const HOST = 'http://rena-chat.herokuapp.com';
 
-// Refers to the Redux state
-const mapStateToProps = state => {
-    let response = state.response;
-    let loading = state.loading;
-    let jwt_token = state.jwt_token;
-    return {
-        loading: loading,
-        jwt_token: jwt_token,
-        response: response
-    };
-};
 
-const mapDispatchToProps = {
-    getHttp,
-    postHttp,
-};
-
-export default connect(mapStateToProps, mapDispatchToProps)(ProfileScreen);
 
 export class ProfileScreen extends Component {
 
@@ -62,50 +45,48 @@ export class ProfileScreen extends Component {
         this.startChat = this.startChat.bind(this);
         this.renderActivityIndicator = this.renderActivityIndicator.bind(this);
     }
+
     async getProfile() {
-        const myHeaders = new Headers({
+        const headers = new Headers({
             'Content-Type': 'application/json',
-            'Authorization': 'JWT ' + this.props.screenProps.authToken
+            'Authorization': 'JWT ' + this.props.jwt_token
         });
-        var options = {
-            method: 'GET',
-            headers: myHeaders
-        }
-        let response = await fetch(HOST + '/api/v1/users/get_current_profile', options);
-        let responseJSON = await response.json();
-        console.log('[getProfile] - Current user profile\'s details: ' + JSON.stringify(responseJSON));
 
-        this.state.profile_picture_server_path = HOST + responseJSON.profile_picture;
+        console.log('[getProfile] - Firing.');
 
-        console.log('[getProfile] - Picture SERVER PATH equal to: ' + this.state.profile_picture_server_path);
+        await this.props.getHttp('/api/v1/users/get_current_profile', headers);
 
-        let picturePath = null;
+        console.log('[getProfile] - Current user profile\'s details: ' + JSON.stringify(this.props.profile));
 
-        if (responseJSON.profile_picture != null) {
-            let filename = responseJSON.profile_picture.split('/').pop();
+        console.log('[getProfile] - Picture SERVER PATH equal to: ' + this.props.profile.profile_picture_server_path);
+
+        let localPicturePath = null;
+
+        if (this.props.profile.profile_picture != null) {
+            let filename = this.props.profile.profile_picture.split('/').pop();
             let dirs = RNFetchBlob.fs.dirs;
             await RNFetchBlob
                 .config({
                     // response data will be saved to this path if it has access right.
                     path: dirs.CacheDir + '/' + filename
                 })
-                .fetch('GET', HOST + responseJSON.profile_picture, {
+                .fetch('GET', HOST + this.props.profile.profile_picture, {
                     //some headers ..
                 })
                 .then((res) => {
                     // the path should be dirs.DocumentDir + 'path-to-file.anything'
                     console.log('[getProfile] - Picture file was saved to: ' + res.path());
-                    picturePath = res.path();
+                    localPicturePath = res.path();
                 })
                 .catch((e) => { console.log('[getProfile] - Blob fetch failed for the following reason: ' + e.message) });
         }
 
         this.setState((prevState) => ({
             profile: {
-                bio: responseJSON.bio,
-                profile_picture: picturePath,
-                username: responseJSON.username,
-                pk: responseJSON.pk
+                bio: this.props.profile.bio,
+                profile_picture: localPicturePath,
+                username: this.props.profile.username,
+                pk: this.props.profile.pk
             }
         }));
     }
@@ -399,8 +380,8 @@ export class ProfileScreen extends Component {
         }))
         await Promise.all([
             this.getProfile().catch((e) => console.log('Error: ' + e.message)),
-            this.getFriends().catch((e) => console.log('Error: ' + e.message)),
-            this.getPendingFriends().catch((e) => console.log('Error: ' + e.message)),
+            // this.getFriends().catch((e) => console.log('Error: ' + e.message)),
+            // this.getPendingFriends().catch((e) => console.log('Error: ' + e.message)),
         ]);
         this.setState(() => ({
             busy: false
@@ -408,7 +389,7 @@ export class ProfileScreen extends Component {
     }
 
     renderActivityIndicator() {
-        if (this.state.busy) {
+        if (this.props.loading) {
             return (
                 <ActivityIndicator
                     style={{
@@ -510,7 +491,7 @@ export class ProfileScreen extends Component {
                         fontSize: 16,
                         borderRadius: 7,
                         backgroundColor: 'white'
-                    }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.state.profile.bio}</TextInput>
+                    }} onChangeText={(text) => this.props.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.props.profile.bio}</TextInput>
                     <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
                         <TouchableOpacity onPress={this.setProfileBio}>
                             <Text style={{ margin: '2%', fontWeight: 'bold' }}>Save</Text>
@@ -526,7 +507,7 @@ export class ProfileScreen extends Component {
                         textAlign: 'center',
                         fontSize: 16,
                         borderRadius: 7,
-                    }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.state.profile.bio}</Text>
+                    }} onChangeText={(text) => this.props.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.props.profile.bio}</Text>
                     <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
                         <TouchableOpacity onPress={this.setProfileBio}>
                             <Text style={{ margin: '2%' }}>edit</Text>
@@ -691,6 +672,28 @@ export class ProfileScreen extends Component {
 
     }
 }
+
+// Refers to the Redux state
+const mapStateToProps = state => {
+    let response = state.response;
+    let loading = state.loading;
+    let jwt_token = state.jwt_token;
+    let profile = state.profile;
+
+    return {
+        loading: loading,
+        jwt_token: jwt_token,
+        profile: profile,
+        response: response
+    };
+};
+
+const mapDispatchToProps = {
+    getHttp,
+    postHttp,
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(ProfileScreen);
 
 const styles = StyleSheet.create({
     container: {

@@ -36,7 +36,6 @@ export const POST_REMOVE_PENDING_FRIEND_FAIL = 'POST_REMOVE_PENDING_FRIEND_FAIL'
 
 export const SET_FRIEND_PROFILE_PICTURE_LOCAL_PATH = 'SET_FRIEND_PROFILE_PICTURE_LOCAL_PATH';
 export const SET_PENDING_FRIEND_PROFILE_PICTURE_LOCAL_PATH = 'SET_PENDING_FRIEND_PROFILE_PICTURE_LOCAL_PATH';
-
 export const SET_PROFILE_PICTURE_LOCAL_PATH = 'SET_PROFILE_PICTURE_LOCAL_PATH';
 
 export const POST = 'POST';
@@ -250,6 +249,32 @@ export default function reducer(state = { baseURL: 'http://rena-chat.herokuapp.c
                     status: action.error.response.status
                 }
             }
+        case POST_SET_PROFILE_BIO:
+            return {
+                ...state,
+                loading: true,
+            }
+        case POST_SET_PROFILE_BIO_SUCCESS:
+            return {
+                ...state,
+                loading: false,
+                profile: {
+                    ...state.profile,
+                    // Add bio payload from initial request.
+                    bio: action.meta.previousAction.payload.bio
+                },
+                response: action.payload.data,
+            };
+        case POST_SET_PROFILE_BIO_FAIL:
+            return {
+                ...state,
+                loading: false,
+                response: {
+                    ...action.error,
+                    // Middleware embeds status code on failure inside of the message property string.
+                    status: action.error.response.status
+                }
+            }
         case SET_PROFILE_PICTURE_LOCAL_PATH:
             return {
                 ...state,
@@ -338,7 +363,7 @@ export function postSetProfilePicture(url, headers, data) {
     };
 }
 
-export function postSetProfileBio(url, headers, data) {
+export function postSetProfileBio(url, headers, data, bio) {
     return {
         type: POST_SET_PROFILE_BIO,
         payload: {
@@ -347,7 +372,8 @@ export function postSetProfileBio(url, headers, data) {
                 headers: headers,
                 method: 'post',
                 url: url,
-            }
+            },
+            bio: bio
 
         }
     };

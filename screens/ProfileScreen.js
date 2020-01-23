@@ -245,27 +245,21 @@ export class ProfileScreen extends Component {
             }))
         }
         else if (this.state.isEditingBio) {
-            let data = this.createFormData({ bio: this.state.profile.bio, username: this.props.screenProps.username });
-            const myHeaders = new Headers({
-                'Authorization': 'JWT ' + this.props.screenProps.authToken
+            let data = this.createFormData({ bio: this.state.profile.bio, username: this.props.profile.username });
+            const headers = new Headers({
+                'Authorization': 'JWT ' + this.props.jwt_token
             });
-            var options = {
-                method: 'POST',
-                headers: myHeaders,
-                body: data
-            }
             console.log('[setProfileBio] - Setting bio to: ' + this.state.profile.bio);
-            let response = await fetch(HOST + '/api/v1/users/set_profile_bio', options);
-            let responseJSON = await response.json();
-            console.log('[setProfileBio] - Successfully added bio to profile, bio: ' + responseJSON.bio);
-            Alert.alert('Bio changed!', 'You have successfully changed your bio.');
-            this.setState((prevState) => ({
-                profile: {
-                    ...prevState.profile,
-                    bio: this.state.profile.bio
-                },
-                isEditingBio: false
-            }))
+            await this.props.postSetProfileBio('/api/v1/users/set_profile_bio', headers, data, this.state.profile.bio);
+
+            if (this.props.response.status === '200') {
+                console.log('[setProfileBio] - Successfully added bio to profile, bio: ' + this.props.profile.bio);
+                Alert.alert('Bio changed!', 'You have successfully changed your bio.');
+            }
+            else {
+                Alert.alert('Uh oh!', 'A network problem has occurred!');
+            }
+            this.setState(() => ({isEditingBio: false}));
         }
     }
 
@@ -429,7 +423,7 @@ export class ProfileScreen extends Component {
                         fontSize: 16,
                         borderRadius: 7,
                         backgroundColor: 'white'
-                    }} onChangeText={(text) => this.props.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.props.profile.bio}</TextInput>
+                    }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.props.profile.bio}</TextInput>
                     <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
                         <TouchableOpacity onPress={this.setProfileBio}>
                             <Text style={{ margin: '2%', fontWeight: 'bold' }}>Save</Text>
@@ -445,7 +439,7 @@ export class ProfileScreen extends Component {
                         textAlign: 'center',
                         fontSize: 16,
                         borderRadius: 7,
-                    }} onChangeText={(text) => this.props.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.props.profile.bio}</Text>
+                    }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.props.profile.bio}</Text>
                     <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
                         <TouchableOpacity onPress={this.setProfileBio}>
                             <Text style={{ margin: '2%' }}>edit</Text>

@@ -368,8 +368,8 @@ export class ProfileScreen extends Component {
             busy: true
         }))
         await Promise.all([
-            this.getProfile().catch((e) => console.log('Error: ' + e.message)),
-            // this.getFriends().catch((e) => console.log('Error: ' + e.message)),
+            //this.getProfile().catch((e) => console.log('Error: ' + e.message)),
+            this.getFriends().catch((e) => console.log('Error: ' + e.message)),
             // this.getPendingFriends().catch((e) => console.log('Error: ' + e.message)),
         ]);
         this.setState(() => ({

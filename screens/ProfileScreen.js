@@ -293,7 +293,7 @@ export class ProfileScreen extends Component {
             this.getPendingFriends().catch((e) => console.log('Error: ' + e.message)),
         ]);
     }
-
+  
     renderActivityIndicator() {
         if (this.props.loading) {
             return (

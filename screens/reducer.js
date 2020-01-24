@@ -46,7 +46,7 @@ export const POST = 'POST';
 export const POST_SUCCESS = 'POST_SUCCESS';
 export const POST_FAIL = 'POST_FAIL';
 
-export default function reducer(state = { baseURL: 'http://rena-chat.herokuapp.com', profile: {}, pending_friends: [] }, action) {
+export default function reducer(state = { baseURL: 'http://rena-chat.herokuapp.com', messages: [], profile: {}, pending_friends: [] }, action) {
     switch (action.type) {
         case GET_FRIENDS:
             return {
@@ -136,6 +136,30 @@ export default function reducer(state = { baseURL: 'http://rena-chat.herokuapp.c
                 }
             };
         case GET_PROFILE_FAIL:
+            return {
+                ...state,
+                loading: false,
+                response: {
+                    ...action.error,
+                    // Middleware embeds status code on failure inside of the message property string.
+                    status: action.error.response.status
+                }
+            };
+        case GET_PREVIOUS_MESSAGES:
+            return {
+                ...state,
+                loading: true,
+            };
+        case GET_PREVIOUS_MESSAGES_SUCCESS:
+            return {
+                ...state,
+                loading: false,
+                response: action.payload,
+                messages: {
+                    ...action.payload.data,
+                }
+            };
+        case GET_PREVIOUS_MESSAGES_FAIL:
             return {
                 ...state,
                 loading: false,

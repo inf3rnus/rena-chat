@@ -16,28 +16,17 @@ export class ChatScreen extends Component {
         super(props)
         this.state = {
             user: {
-                ...this.props.profile,
                 _id: this.props.profile.pk,
                 name: this.props.profile.username,
                 avatar: this.props.profile.profile_picture_server_path,
             },
-            current_user_id: this.props.profile.pk,
             friend_user_id: this.props.navigation.state.params.friend_id,
-
             conversation_id: null,
 
             user_message: null,
-            message_image: null,
             messages: [],
             page_offset: 0,
-            socket: null,
         }
-        // // Send user object to Chat Screen so that the chat can use the user's profile information.
-        // this.user = {
-        //     _id: this.props.profile.pk,
-        //     name: this.props.profile.username,
-        //     avatar: this.props.profile.profile_picture_server_path,
-        // }
         this.setupWebsocket = this.setupWebsocket.bind(this);
         this.getPreviousMessages = this.getPreviousMessages.bind(this);
     }
@@ -45,7 +34,7 @@ export class ChatScreen extends Component {
     socket;
     setupWebsocket() {
         this.socket = new WebSocket(WS_HOST + '/ws/chat');
-        console.log('Socket is: ' + this.socket);
+        console.log('[setupWebsocket] - WebSocket initialized');
 
         // If the conversation ID has not been ascertained yet, retrieve it
         this.socket.onopen = (e) => {
@@ -65,15 +54,11 @@ export class ChatScreen extends Component {
                     this.state.conversation_id = data.conversation_id;
                     this.getPreviousMessages(this.state.conversation_id);
                     break;
-                // Replace with some kind of state change for stored messages.
-                // With Redux, an action creator would be used to generate an action and effect the state bound to the component.
-                // It would be connected to the Component's props and state via the connect function().
-                // Because the store serves as a container for an app, the set of combined reducers bound to the store would then serve to interpret the action object and determine what Nodes the returned state change should affect.
                 default:
                     console.log('[onmessage] - receive_chat fired, data contents: ' + e.data);
-                    console.log('[onmessage] - Current user ID: ' + data.current_user_id + ' and ' + this.state.current_user_id);
+                    console.log('[onmessage] - Current user ID: ' + data.current_user_id + ' and ' + this.state.user._id);
                     console.log('[onmessage] - Type of the contents: ' + typeof data.message_contents);
-                    if (data.current_user_id !== this.state.current_user_id) {
+                    if (data.current_user_id !== this.state.user._id) {
                         this.setState(previousState => ({
                             messages: GiftedChat.append(previousState.messages, data.message_contents),
                         }), () => { });
@@ -125,7 +110,7 @@ export class ChatScreen extends Component {
 
     onSend(messages = []) {
         console.log('[onSend] - Avatar server path is: ' + this.state.user.avatar);
-        messages[0].user = this.state.user
+        messages[0].user = this.state.user;
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, messages),
         }));
@@ -137,13 +122,12 @@ export class ChatScreen extends Component {
             conversation_id: this.state.conversation_id,
             command: 'send_chat',
             message_contents: messages[0],
-            current_user_id: this.state.current_user_id,
-            message_image: this.state.message_image
+            current_user_id: this.state.user._id,
         }));
     }
 
     async componentDidMount() {
-        console.log('[ChatScreen] - Selected friend pk is: ' + this.props.navigation.state.params.friend_id);
+        console.log('[ChatScreen] - Selected friend pk is: ' + this.state.friend_user_id);
         this.setupWebsocket();
     }
 
@@ -162,7 +146,7 @@ export class ChatScreen extends Component {
                     onLoadEarlier={this.getPreviousMessages.bind(this, this.state.conversation_id)}
                     onSend={messages => this.onSend(messages)}
                     user={{
-                        _id: this.state.current_user_id,
+                        _id: this.state.user._id,
                     }}
                 />
             </View>

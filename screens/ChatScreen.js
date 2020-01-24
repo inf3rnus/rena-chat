@@ -56,7 +56,6 @@ export class ChatScreen extends Component {
                     break;
                 default:
                     console.log('[onmessage] - receive_chat fired, data contents: ' + e.data);
-                    console.log('[onmessage] - Current user ID: ' + data.current_user_id + ' and ' + this.state.user._id);
                     console.log('[onmessage] - Type of the contents: ' + typeof data.message_contents);
                     if (data.current_user_id !== this.state.user._id) {
                         this.setState(previousState => ({

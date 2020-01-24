@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import { Alert, AsyncStorage, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, Text, TextInput, TouchableOpacity, View, Button, Platform } from 'react-native';
+import { connect } from 'react-redux';
+import { postHttp } from './reducer';
 import { GiftedChat } from 'react-native-gifted-chat';
 
 //const HOST = 'http://10.0.2.2:8000';
@@ -8,21 +10,34 @@ const HOST = 'http://rena-chat.herokuapp.com';
 const WS_HOST = 'ws://rena-chat.herokuapp.com';
 const LIMIT = 10;
 
-export default class ChatScreen extends Component {
+export class ChatScreen extends Component {
 
     constructor(props) {
         super(props)
         this.state = {
-            user: this.props.navigation.state.params.user,
+            user: {
+                ...this.props.profile,
+                _id: this.props.profile.pk,
+                name: this.props.profile.username,
+                avatar: this.props.profile.profile_picture_server_path,
+            },
+            current_user_id: this.props.profile.pk,
+            friend_user_id: this.props.navigation.state.params.friend_id,
+
+            conversation_id: null,
+
             user_message: null,
             message_image: null,
-            current_user_id: this.props.navigation.state.params.user._id,
-            friend_user_id: this.props.navigation.state.params.friend_id,
-            conversation_id: null,
             messages: [],
             page_offset: 0,
             socket: null,
         }
+        // // Send user object to Chat Screen so that the chat can use the user's profile information.
+        // this.user = {
+        //     _id: this.props.profile.pk,
+        //     name: this.props.profile.username,
+        //     avatar: this.props.profile.profile_picture_server_path,
+        // }
         this.setupWebsocket = this.setupWebsocket.bind(this);
         this.getPreviousMessages = this.getPreviousMessages.bind(this);
     }
@@ -63,7 +78,7 @@ export default class ChatScreen extends Component {
                             messages: GiftedChat.append(previousState.messages, data.message_contents),
                         }), () => { });
                         console.log('[onmessage] - Message contents: ' + JSON.stringify(data.message_contents));
-                        
+
                     }
                     break;
             }
@@ -90,7 +105,7 @@ export default class ChatScreen extends Component {
         let responseJSON = await response.json();
 
         console.log('[getPreviousMessages] - JSON response is: ' + JSON.stringify(responseJSON));
-        
+
         let lastMessages = [];
 
         responseJSON.results.forEach((message) => {
@@ -98,7 +113,7 @@ export default class ChatScreen extends Component {
             console.log('[getPreviousMessages] - Current Message ID from the API is: ' + JSON.stringify(message.id));
             message_contents_object._id = message.id;
             message.message_contents = JSON.stringify(message_contents_object);
-        
+
             lastMessages = [...lastMessages, message_contents_object];
         })
         console.log('[getPreviousMessages] - List of objects is: ' + JSON.stringify(lastMessages));
@@ -114,7 +129,7 @@ export default class ChatScreen extends Component {
         this.setState(previousState => ({
             messages: GiftedChat.append(previousState.messages, messages),
         }));
-        
+
         // You may need to figure out why the argument passed to this callback is an array...
         // I can only think it's purpose is to 
         console.log('[onSend] - Message encapsulated: ' + JSON.stringify(messages));
@@ -155,6 +170,24 @@ export default class ChatScreen extends Component {
     }
 
 };
+
+// Refers to the Redux state
+const mapStateToProps = state => {
+    let { loading, jwt_token, messages, profile, response, } = state;
+    return {
+        loading: loading,
+        jwt_token: jwt_token,
+        messages: messages,
+        profile: profile,
+        response: response
+    };
+};
+
+const mapDispatchToProps = {
+    postHttp
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(ChatScreen);
 
 const styles = StyleSheet.create({
     container: {

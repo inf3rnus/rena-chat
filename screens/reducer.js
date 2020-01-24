@@ -10,6 +10,10 @@ export const GET_PENDING_FRIENDS = 'GET_PENDING_FRIENDS_FAIL';
 export const GET_PENDING_FRIENDS_SUCCESS = 'GET_PENDING_FRIENDS_FAIL_SUCCESS';
 export const GET_PENDING_FRIENDS_FAIL = 'GET_PENDING_FRIENDS_FAIL_FAIL';
 
+export const GET_PREVIOUS_MESSAGES = 'GET_PREVIOUS_MESSAGES';
+export const GET_PREVIOUS_MESSAGES_SUCCESS = 'GET_PREVIOUS_MESSAGES_SUCCESS';
+export const GET_PREVIOUS_MESSAGES_FAIL = 'GET_PREVIOUS_MESSAGES_FAIL';
+
 export const POST_REQUEST_FRIEND = 'POST_REQUEST_FRIEND';
 export const POST_REQUEST_FRIEND_SUCCESS = 'POST_REQUEST_FRIEND_SUCCESS';
 export const POST_REQUEST_FRIEND_FAIL = 'POST_REQUEST_FRIEND_FAIL';
@@ -458,6 +462,20 @@ export function getPendingFriends(url, headers) {
     }
 }
 
+export function getPreviousMessages(url, headers) {
+    return {
+        type: GET_PREVIOUS_MESSAGES,
+        payload: {
+            request: {
+                headers: headers,
+                method: 'get',
+                url: url,
+            }
+
+        }
+    }
+}
+
 export function setFriendPictureLocalPath(path, index) {
     return {
         type: SET_FRIEND_PROFILE_PICTURE_LOCAL_PATH,
@@ -486,3 +504,4 @@ export function setProfilePictureLocalPath(path) {
         }
     };
 }
+

@@ -6,6 +6,8 @@ import ImagePicker from 'react-native-image-picker';
 import { TextInput } from 'react-native-gesture-handler';
 import RNFetchBlob from 'rn-fetch-blob';
 
+const HOST = 'http://rena-chat.herokuapp.com';
+
 export class ProfileScreen extends Component {
 
     constructor(props) {
@@ -277,13 +279,6 @@ export class ProfileScreen extends Component {
         console.log('[startChat] - CURRENT USER PK: ' + this.state.profile.pk);
         this.props.navigation.navigate('Chat', {
             friend_id: friend_id,
-            user_profile_id: this.state.profile.pk,
-            // Send user object to Chat Screen so that the chat can use the user's profile information.
-            user: {
-                _id: this.props.profile.pk,
-                name: this.props.profile.username,
-                avatar: this.props.profile.profile_picture_server_path,
-            }
         });
     }
 

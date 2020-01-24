@@ -168,7 +168,7 @@ var styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'column',
         alignItems: 'center',
-        backgroundColor: '#62F698',
+        backgroundColor: 'white',
         padding: 20
     },
     title: {

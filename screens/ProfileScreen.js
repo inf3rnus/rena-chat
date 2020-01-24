@@ -48,7 +48,7 @@ export default class ProfileScreen extends Component {
             method: 'GET',
             headers: myHeaders
         }
-        let response = await fetch( HOST + '/get_current_profile', options);
+        let response = await fetch(HOST + '/api/v1/users/get_current_profile', options);
         let responseJSON = await response.json();
         console.log('[getProfile] - Current user profile\'s details: ' + JSON.stringify(responseJSON));
 
@@ -96,7 +96,7 @@ export default class ProfileScreen extends Component {
             method: 'GET',
             headers: myHeaders
         }
-        let response = await fetch( HOST + '/get_friends/', options);
+        let response = await fetch(HOST + '/api/v1/friends/get_friends', options);
         let responseJSON = await response.json();
         console.log('[getFriends] - Friends for user: ' + this.props.screenProps.username + ' ' + JSON.stringify(responseJSON));
 
@@ -145,7 +145,7 @@ export default class ProfileScreen extends Component {
             method: 'GET',
             headers: myHeaders
         }
-        let response = await fetch(HOST + '/get_pending_friends/', options);
+        let response = await fetch(HOST + '/api/v1/friends/get_pending_friends', options);
         let responseJSON = await response.json();
         console.log('[getPendingFriends] - Friends for user: ' + this.props.screenProps.username + ' ' + JSON.stringify(responseJSON));
 
@@ -196,7 +196,7 @@ export default class ProfileScreen extends Component {
             headers: myHeaders,
             body: data
         }
-        let response = await fetch(HOST + '/request_friend', options);
+        let response = await fetch(HOST + '/api/v1/friends/request_friend', options);
         let responseJSON = await response.json();
         console.log('[requestFriend] - Requested friend: ' + friend_username + ' for user: ' + this.props.screenProps.username + ' Result: ' + JSON.stringify(responseJSON.success));
         Alert.alert(friend_username + ' friend request sent!', 'You have requested to be friends with ' + friend_username + '!');
@@ -213,7 +213,7 @@ export default class ProfileScreen extends Component {
             headers: myHeaders,
             body: data
         }
-        let response = await fetch(HOST + '/confirm_friend', options);
+        let response = await fetch(HOST + '/api/v1/friends/confirm_friend', options);
         let responseJSON = await response.json();
         console.log('[confirmFriend] - Confirmed friend: ' + friend_username + ' for user: ' + this.props.screenProps.username + ' Result: ' + JSON.stringify(responseJSON.success));
         Alert.alert(friend_username + ' added!', 'You have added ' + friend_username + ' to your friends list!');
@@ -233,7 +233,7 @@ export default class ProfileScreen extends Component {
             headers: myHeaders,
             body: data
         }
-        let response = await fetch(HOST + '/remove_friend', options);
+        let response = await fetch(HOST + '/api/v1/friends/remove_friend', options);
         let responseJSON = await response.json();
         console.log('[removeFriend] - Confirmed friend: ' + friend_username + ' for user: ' + this.props.screenProps.username + ' Result: ' + JSON.stringify(responseJSON.success));
         Alert.alert(friend_username + ' removed', 'You have removed ' + friend_username + ' from your friends list.');
@@ -282,7 +282,7 @@ export default class ProfileScreen extends Component {
                     headers: myHeaders,
                     body: data
                 }
-                let serverResponse = await fetch(HOST + '/set_profile_picture', options);
+                let serverResponse = await fetch(HOST + '/api/v1/users/set_profile_picture', options);
                 let responseJSON = await serverResponse.json();
                 Alert.alert('Success', 'You have successfully added your new profile picture!');
 
@@ -313,7 +313,7 @@ export default class ProfileScreen extends Component {
                 body: data
             }
             console.log('[setProfileBio] - Setting bio to: ' + this.state.profile.bio);
-            let response = await fetch(HOST + '/set_profile_bio', options);
+            let response = await fetch(HOST + '/api/v1/users/set_profile_bio', options);
             let responseJSON = await response.json();
             console.log('[setProfileBio] - Successfully added bio to profile, bio: ' + responseJSON.bio);
             Alert.alert('Bio changed!', 'You have successfully changed your bio.');
@@ -338,7 +338,7 @@ export default class ProfileScreen extends Component {
             headers: myHeaders,
             body: data
         }
-        let response = await fetch(HOST + '/remove_pending_friend', options);
+        let response = await fetch(HOST + '/api/v1/friends/remove_pending_friend', options);
         let responseJSON = await response.json();
         console.log('[removePendingFriend] - Pending friend: ' + friend_username + ' for user: ' + this.props.screenProps.username + ' Result: ' + JSON.stringify(responseJSON.success));
         Alert.alert(friend_username + ' removed', 'You have removed ' + friend_username + ' from your friends list.');
@@ -382,29 +382,8 @@ export default class ProfileScreen extends Component {
         this.setState(() => ({
             busy: false
         }))
-
-
-
-
-
     }
-
-    componentWillMount() {
-        this.setState({
-            messages: [
-                {
-                    _id: 1,
-                    text: 'Hello developer',
-                    createdAt: new Date(),
-                    user: {
-                        _id: 2,
-                        name: 'React Native',
-                        avatar: 'https://placeimg.com/140/140/any',
-                    },
-                },
-            ],
-        })
-    }
+   
     renderActivityIndicator() {
         if (this.state.busy) {
             return (
@@ -439,20 +418,25 @@ export default class ProfileScreen extends Component {
             />
         );
     }
-    renderListHeader() {
+    renderListHeader(shouldRenderFriendBar) {
         return (
             <View style={{ flex: 1, alignSelf: 'stretch', marginBottom: 10 }}>
-                <View style={styles.addFriendBar}>
-                    <TextInput
-                        style={styles.addFriendBarTextField}
-                        onChangeText={(text) => this.state.request_friend_text = text}
-                        placeholder='Request friend'
-                        placeholderTextColor='grey'
-                    />
-                    <TouchableOpacity style={styles.addFriendBarButton} onPress={() => { this.requestFriend(this.state.request_friend_text) }}>
-                        <Text style={styles.addFriendBarText}>Add</Text>
-                    </TouchableOpacity>
-                </View>
+                {
+                    shouldRenderFriendBar === true ?
+                        <View style={styles.addFriendBar}>
+                            <TextInput
+                                style={styles.addFriendBarTextField}
+                                onChangeText={(text) => this.state.request_friend_text = text}
+                                placeholder='Request friend'
+                                placeholderTextColor='grey'
+                            />
+                            <TouchableOpacity style={styles.addFriendBarButton} onPress={() => { this.requestFriend(this.state.request_friend_text) }}>
+                                <Text style={styles.addFriendBarText}>Add</Text>
+                            </TouchableOpacity>
+                        </View>
+                        :
+                        null
+                }
                 {
                     this.state.pending_friends.length > 0 ?
                         <View>
@@ -561,15 +545,9 @@ export default class ProfileScreen extends Component {
 
                         <View style={styles.bodyContainer}>
                             <View style={styles.bodyTopBar}>
-                                <TouchableOpacity
-                                    style={styles.bodyTopBarHotButton}
-                                    onPress={this.changeBodyOption.bind(this, 'posts')}
-                                >
-                                    <Text style={styles.bodyTopBarPostsButtonText}>Posts</Text>
-                                </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.bodyTopBarHotButton}
+                                    style={styles.bodyTopBarFriendsButton}
                                     onPress={this.changeBodyOption.bind(this, 'friends')}
                                 >
                                     <Text style={styles.bodyTopBarFriendsButtonText}>Friends</Text>
@@ -583,8 +561,6 @@ export default class ProfileScreen extends Component {
                                 </TouchableOpacity>
 
                             </View>
-
-
 
                             <FlatList
                                 style={styles.postsContainer}
@@ -606,7 +582,7 @@ export default class ProfileScreen extends Component {
                                     </View>
                                 )}
                                 ItemSeparatorComponent={this.renderSeparatorComponent}
-                                ListHeaderComponent={this.renderListHeader}
+                                ListHeaderComponent={this.renderListHeader.bind(this, true)}
                                 keyExtractor={item => item.username}
                             />
                         </View>
@@ -643,15 +619,9 @@ export default class ProfileScreen extends Component {
 
                         <View style={styles.bodyContainer}>
                             <View style={styles.bodyTopBar}>
-                                <TouchableOpacity
-                                    style={styles.bodyTopBarHotButton}
-                                    onPress={this.changeBodyOption.bind(this, 'posts')}
-                                >
-                                    <Text style={styles.bodyTopBarPostsButtonText}>Posts</Text>
-                                </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.bodyTopBarHotButton}
+                                    style={styles.bodyTopBarFriendsButton}
                                     onPress={this.changeBodyOption.bind(this, 'friends')}
                                 >
                                     <Text style={styles.bodyTopBarFriendsButtonText}>Friends</Text>
@@ -688,7 +658,7 @@ export default class ProfileScreen extends Component {
                                     </View>
                                 )}
                                 ItemSeparatorComponent={this.renderSeparatorComponent}
-                                ListHeaderComponent={this.renderListHeader}
+                                ListHeaderComponent={this.renderListHeader.bind(this, false)}
                                 keyExtractor={item => item.username}
                             />
                         </View>
@@ -706,7 +676,7 @@ const styles = StyleSheet.create({
         padding: 25,
         //paddingHorizontal: '5%',kjk
         flexDirection: 'column',
-        backgroundColor: '#62F698',
+        backgroundColor: 'lightgrey',
     },
     chatContainer: {
 
@@ -807,8 +777,6 @@ const styles = StyleSheet.create({
         alignSelf: 'stretch',
         borderRightWidth: 1,
         borderRightColor: 'grey',
-        borderLeftWidth: 1,
-        borderLeftColor: 'grey'
         //backgroundColor: 'yellow'
     },
     bodyTopBarFriendsButtonText: {

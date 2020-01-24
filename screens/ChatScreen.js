@@ -83,58 +83,10 @@ export class ChatScreen extends Component {
 
         console.log('[getPreviousMessages] - JSON response is: ' + JSON.stringify(this.props.messages));
 
-        let lastMessages = [];
-
-        // Messages object contains a results property that stores individual messages in an array
-        this.props.messages.results.forEach((message) => {
-            var message_contents_object = JSON.parse(message.message_contents);
-            console.log('[getPreviousMessages] - Current Message ID from the API is: ' + JSON.stringify(message.id));
-            message_contents_object._id = message.id;
-            message.message_contents = JSON.stringify(message_contents_object);
-
-            lastMessages = [...lastMessages, message_contents_object];
-        })
-        console.log('[getPreviousMessages] - List of objects is: ' + JSON.stringify(lastMessages));
-
         this.setState(previousState => ({
-            messages: GiftedChat.append(previousState.messages, lastMessages, false),
-        }), () => { });
+            messages: GiftedChat.append(previousState.messages, this.props.messages, false),
+        }));
     }
-
-    // async getPreviousMessages(conversation_id) {
-    //     const myHeaders = new Headers({
-    //         'Content-Type': 'application/json',
-    //         'Authorization': 'JWT ' + this.props.screenProps.authToken
-    //     });
-    //     var options = {
-    //         method: 'GET',
-    //         headers: myHeaders
-    //     }
-
-    //     console.log('[getPreviousMessages] - Offset is: ' + this.state.page_offset);
-
-    //     let response = await fetch(HOST + '/api/v1/chat/get_conversation_messages?limit=' + LIMIT + '&offset=' + this.state.page_offset + '&conversation_id=' + conversation_id, options);
-    //     this.state.page_offset += 10;
-    //     let responseJSON = await response.json();
-
-    //     console.log('[getPreviousMessages] - JSON response is: ' + JSON.stringify(responseJSON));
-
-    //     let lastMessages = [];
-
-    //     responseJSON.results.forEach((message) => {
-    //         var message_contents_object = JSON.parse(message.message_contents);
-    //         console.log('[getPreviousMessages] - Current Message ID from the API is: ' + JSON.stringify(message.id));
-    //         message_contents_object._id = message.id;
-    //         message.message_contents = JSON.stringify(message_contents_object);
-
-    //         lastMessages = [...lastMessages, message_contents_object];
-    //     })
-    //     console.log('[getPreviousMessages] - List of objects is: ' + JSON.stringify(lastMessages));
-
-    //     this.setState(previousState => ({
-    //         messages: GiftedChat.append(previousState.messages, lastMessages, false),
-    //     }), () => { });
-    // }
 
     onSend(messages = []) {
         console.log('[onSend] - Avatar server path is: ' + this.state.user.avatar);
@@ -185,8 +137,9 @@ export class ChatScreen extends Component {
 
 // Refers to the Redux state
 const mapStateToProps = state => {
-    let { loading, jwt_token, messages, profile, response, } = state;
+    let { friends, loading, jwt_token, messages, profile, response, } = state;
     return {
+        friends,
         loading: loading,
         jwt_token: jwt_token,
         messages: messages,

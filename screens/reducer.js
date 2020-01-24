@@ -42,6 +42,10 @@ export const SET_FRIEND_PROFILE_PICTURE_LOCAL_PATH = 'SET_FRIEND_PROFILE_PICTURE
 export const SET_PENDING_FRIEND_PROFILE_PICTURE_LOCAL_PATH = 'SET_PENDING_FRIEND_PROFILE_PICTURE_LOCAL_PATH';
 export const SET_PROFILE_PICTURE_LOCAL_PATH = 'SET_PROFILE_PICTURE_LOCAL_PATH';
 
+export const SET_FRIEND_MESSAGES = 'SET_FRIEND_MESSAGES';
+export const SET_FRIEND_MESSAGES_SUCCESS = 'SET_FRIEND_MESSAGES_SUCCESS';
+export const SET_FRIEND_MESSAGES_FAIL = 'SET_FRIEND_MESSAGES_FAIL';
+
 export const POST = 'POST';
 export const POST_SUCCESS = 'POST_SUCCESS';
 export const POST_FAIL = 'POST_FAIL';
@@ -151,13 +155,22 @@ export default function reducer(state = { baseURL: 'http://rena-chat.herokuapp.c
                 loading: true,
             };
         case GET_PREVIOUS_MESSAGES_SUCCESS:
+            let lastMessages = [];
+
+            // Messages object contains a results property that stores individual messages in an array
+            action.payload.data.results.forEach((message) => {
+                var message_contents_object = JSON.parse(message.message_contents);
+                console.log('[getPreviousMessages] - Current Message ID from the API is: ' + JSON.stringify(message.id));
+                message_contents_object._id = message.id;
+                message.message_contents = JSON.stringify(message_contents_object);
+    
+                lastMessages = [...lastMessages, message_contents_object];
+            })
             return {
                 ...state,
                 loading: false,
                 response: action.payload,
-                messages: {
-                    ...action.payload.data,
-                }
+                messages: lastMessages
             };
         case GET_PREVIOUS_MESSAGES_FAIL:
             return {
@@ -494,8 +507,7 @@ export function getPreviousMessages(url, headers) {
                 headers: headers,
                 method: 'get',
                 url: url,
-            }
-
+            },
         }
     }
 }
@@ -527,5 +539,15 @@ export function setProfilePictureLocalPath(path) {
             profile_picture_local_path: path
         }
     };
+}
+
+export function setFriendMessages(friend_id, messages) {
+    return {
+        type: SET_FRIEND_MESSAGES,
+        payload: {
+            friend_id,
+            messages
+        }
+    }
 }
 

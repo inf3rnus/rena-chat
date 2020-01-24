@@ -3,7 +3,8 @@ import { ActivityIndicator, Alert, AsyncStorage, Image, Keyboard, StyleSheet, Pe
 import { StackActions, NavigationActions } from 'react-navigation';
 import { TextInput } from 'react-native-gesture-handler';
 
-const HOST = 'http://10.0.2.2:8000';
+//const HOST = 'http://10.0.2.2:8000';
+const HOST = 'http://rena-chat.herokuapp.com';
 
 export default class UserSetup extends Component {
     constructor(props) {

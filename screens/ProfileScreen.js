@@ -383,7 +383,7 @@ export default class ProfileScreen extends Component {
             busy: false
         }))
     }
-    
+   
     renderActivityIndicator() {
         if (this.state.busy) {
             return (

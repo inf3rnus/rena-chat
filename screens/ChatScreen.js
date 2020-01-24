@@ -28,6 +28,7 @@ export default class ChatScreen extends Component {
     socket;
     setupWebsocket() {
         this.socket = new WebSocket(WS_HOST + '/ws/chat');
+
         console.log('Socket is: ' + this.socket);
 
         // If the conversation ID has not been ascertained yet, retrieve it

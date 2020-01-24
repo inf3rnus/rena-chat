@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
 import { ActivityIndicator, Alert, AsyncStorage, FlatList, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View, Button, Platform } from 'react-native';
+import { connect } from 'react-redux';
+import { getHttp, getFriends, getPendingFriends, postHttp, postRequestFriend, postConfirmFriend, postRemoveFriend, postSetProfileBio, postSetProfilePicture, postRemovePendingFriend, setFriendPictureLocalPath, setPendingFriendPictureLocalPath, setProfilePictureLocalPath } from './reducer';
 import ImagePicker from 'react-native-image-picker';
 import { TextInput } from 'react-native-gesture-handler';
 import RNFetchBlob from 'rn-fetch-blob';
 
-//const HOST = 'http://10.0.2.2:8000';
 const HOST = 'http://rena-chat.herokuapp.com';
 
-export default class ProfileScreen extends Component {
+export class ProfileScreen extends Component {
 
     constructor(props) {
         super(props)
@@ -15,18 +16,12 @@ export default class ProfileScreen extends Component {
             profile: {
 
             },
-            profile_picture_server_path: null,
             topBarOption: 'friends',
-            friends: [],
-            pending_friends: [],
-            requested_friends: [],
-            busy: false,
+
             request_friend_text: null,
             confirm_friend_text: null,
 
             isEditingBio: false,
-
-            busy: false,
         }
         this.changeBodyOption = this.changeBodyOption.bind(this);
         this.getProfile = this.getProfile.bind(this);
@@ -40,74 +35,56 @@ export default class ProfileScreen extends Component {
         this.startChat = this.startChat.bind(this);
         this.renderActivityIndicator = this.renderActivityIndicator.bind(this);
     }
+
     async getProfile() {
-        const myHeaders = new Headers({
+        const headers = new Headers({
             'Content-Type': 'application/json',
-            'Authorization': 'JWT ' + this.props.screenProps.authToken
+            'Authorization': 'JWT ' + this.props.jwt_token
         });
-        var options = {
-            method: 'GET',
-            headers: myHeaders
-        }
-        let response = await fetch(HOST + '/api/v1/users/get_current_profile', options);
-        let responseJSON = await response.json();
-        console.log('[getProfile] - Current user profile\'s details: ' + JSON.stringify(responseJSON));
 
-        this.state.profile_picture_server_path = HOST + responseJSON.profile_picture;
+        await this.props.getHttp('/api/v1/users/get_current_profile', headers);
 
-        console.log('[getProfile] - Picture SERVER PATH equal to: ' + this.state.profile_picture_server_path);
+        console.log('[getProfile] - Current user profile\'s details: ' + JSON.stringify(this.props.profile));
+        console.log('[getProfile] - Picture SERVER PATH equal to: ' + this.props.profile.profile_picture_server_path);
 
-        let picturePath = null;
+        let localPicturePath = null;
 
-        if (responseJSON.profile_picture != null) {
-            let filename = responseJSON.profile_picture.split('/').pop();
+        if (this.props.profile.profile_picture != null) {
+            let filename = this.props.profile.profile_picture.split('/').pop();
             let dirs = RNFetchBlob.fs.dirs;
             await RNFetchBlob
                 .config({
                     // response data will be saved to this path if it has access right.
                     path: dirs.CacheDir + '/' + filename
                 })
-                .fetch('GET', HOST + responseJSON.profile_picture, {
+                .fetch('GET', HOST + this.props.profile.profile_picture, {
                     //some headers ..
                 })
                 .then((res) => {
                     // the path should be dirs.DocumentDir + 'path-to-file.anything'
                     console.log('[getProfile] - Picture file was saved to: ' + res.path());
-                    picturePath = res.path();
+                    localPicturePath = res.path();
                 })
                 .catch((e) => { console.log('[getProfile] - Blob fetch failed for the following reason: ' + e.message) });
         }
-
-        this.setState((prevState) => ({
-            profile: {
-                bio: responseJSON.bio,
-                profile_picture: picturePath,
-                username: responseJSON.username,
-                pk: responseJSON.pk
-            }
-        }));
+        this.props.setProfilePictureLocalPath(localPicturePath);
     }
 
     async getFriends() {
-        const myHeaders = new Headers({
+        const headers = new Headers({
             'Content-Type': 'application/json',
-            'Authorization': 'JWT ' + this.props.screenProps.authToken
+            'Authorization': 'JWT ' + this.props.jwt_token
         });
-        var options = {
-            method: 'GET',
-            headers: myHeaders
-        }
-        let response = await fetch(HOST + '/api/v1/friends/get_friends', options);
-        let responseJSON = await response.json();
-        console.log('[getFriends] - Friends for user: ' + this.props.screenProps.username + ' ' + JSON.stringify(responseJSON));
+
+        await this.props.getFriends('/api/v1/friends/get_friends', headers);
+
+        console.log('[getFriends] - Friends for user: ' + this.props.profile.username + ' ' + JSON.stringify(this.props.friends));
 
         // Retrieve pictures from the server and format them so that they are readily downloaded
-
-        var friends = [];
-        responseJSON.map(async (friend) => {
-            console.log('Current friend\'s details: ' + JSON.stringify(friend));
+        this.props.friends.forEach(async (friend, index) => {
+            console.log('[getFriends] - Current friend\'s details: ' + JSON.stringify(friend));
             console.log('[getFriends] - Picture is equal to: ' + friend.profile_picture);
-            let picturePath = null;
+            let localProfilePicturePath = null;
 
             if (friend.profile_picture != null) {
                 let filename = friend.profile_picture.split('/').pop();
@@ -123,38 +100,26 @@ export default class ProfileScreen extends Component {
                     .then((res) => {
                         // the path should be dirs.DocumentDir + 'path-to-file.anything'
                         console.log('[getFriends] - Picture file was saved to: ' + res.path());
-                        picturePath = res.path();
+                        localProfilePicturePath = res.path();
                     })
                     .catch((e) => { console.log('[getFriends] - Blob fetch failed for the following reason: ' + e.message) });
             }
-            friend.profile_picture = picturePath;
-            friends.push(friend);
-            this.setState(() => ({
-                friends: friends
-            }));
+            this.props.setFriendPictureLocalPath(localProfilePicturePath, index)
         });
-        this.setState(() => ({
-            friends: friends
-        }));
     }
     async getPendingFriends() {
-        const myHeaders = new Headers({
+        const headers = new Headers({
             'Content-Type': 'application/json',
-            'Authorization': 'JWT ' + this.props.screenProps.authToken
+            'Authorization': 'JWT ' + this.props.jwt_token
         });
-        var options = {
-            method: 'GET',
-            headers: myHeaders
-        }
-        let response = await fetch(HOST + '/api/v1/friends/get_pending_friends', options);
-        let responseJSON = await response.json();
-        console.log('[getPendingFriends] - Friends for user: ' + this.props.screenProps.username + ' ' + JSON.stringify(responseJSON));
+        await this.props.getPendingFriends('/api/v1/friends/get_pending_friends', headers);
 
-        var friends = [];
-        responseJSON.map(async (friend) => {
+        console.log('[getPendingFriends] - Friends for user: ' + this.props.username + ' ' + JSON.stringify(this.props.pending_friends));
+
+        this.props.pending_friends.forEach(async (friend, index) => {
             console.log('Current friend\'s details: ' + JSON.stringify(friend));
             console.log('[getPendingFriends] - Picture is equal to: ' + friend.profile_picture);
-            let picturePath = null;
+            let localProfilePicturePath = null;
 
             if (friend.profile_picture != null) {
                 let filename = friend.profile_picture.split('/').pop();
@@ -170,73 +135,50 @@ export default class ProfileScreen extends Component {
                     .then((res) => {
                         // the path should be dirs.DocumentDir + 'path-to-file.anything'
                         console.log('[getPendingFriends] - Picture file was saved to: ' + res.path());
-                        picturePath = res.path();
+                        localProfilePicturePath = res.path();
                     })
                     .catch((e) => { console.log('[getPendingFriends] - Blob fetch failed for the following reason: ' + e.message) });
             }
-            friend.profile_picture = picturePath;
-            friends.push(friend);
-            this.setState(() => ({
-                pending_friends: friends
-            }));
+            this.props.setPendingFriendPictureLocalPath(localProfilePicturePath, index)
         });
-        this.setState(() => ({
-            pending_friends: friends
-        }));
     }
 
     async requestFriend(friend_username) {
         let data = this.createFormData({ username: friend_username });
-        console.log('[requestFriend] - User auth token is: ' + this.props.screenProps.authToken + ' requested friend is: ' + this.state.request_friend_text + ' Form data: ' + JSON.stringify(data));
+        console.log('[requestFriend] - User auth token is: ' + this.props.jwt_token + ' requested friend is: ' + this.state.request_friend_text + ' Form data: ' + JSON.stringify(data));
         // Careful of the headers, make sure your content type is appropriate....
-        const myHeaders = new Headers({
-            'Authorization': 'JWT ' + this.props.screenProps.authToken
+        const headers = new Headers({
+            'Authorization': 'JWT ' + this.props.jwt_token
         });
-        var options = {
-            method: 'POST',
-            headers: myHeaders,
-            body: data
-        }
-        let response = await fetch(HOST + '/api/v1/friends/request_friend', options);
-        let responseJSON = await response.json();
-        console.log('[requestFriend] - Requested friend: ' + friend_username + ' for user: ' + this.props.screenProps.username + ' Result: ' + JSON.stringify(responseJSON.success));
+
+        await this.props.postRequestFriend('/api/v1/friends/request_friend', headers, data);
+
+        console.log('[requestFriend] - Requested friend: ' + friend_username + ' for user: ' + this.props.profile.username + ' Result: ' + JSON.stringify(this.props.response.success));
         Alert.alert(friend_username + ' friend request sent!', 'You have requested to be friends with ' + friend_username + '!');
     }
 
     async confirmFriend(friend_username) {
         let data = this.createFormData({ username: friend_username });
-        console.log('[confirmFriend] - User auth token is: ' + this.props.screenProps.authToken + ' confirmed friend is: ' + this.state.confirm_friend_text + ' Form data: ' + JSON.stringify(data));
-        const myHeaders = new Headers({
-            'Authorization': 'JWT ' + this.props.screenProps.authToken
+        console.log('[confirmFriend] - User auth token is: ' + this.props.jwt_token + ' confirmed friend is: ' + this.state.confirm_friend_text + ' Form data: ' + JSON.stringify(data));
+        const headers = new Headers({
+            'Authorization': 'JWT ' + this.props.jwt_token
         });
-        var options = {
-            method: 'POST',
-            headers: myHeaders,
-            body: data
-        }
-        let response = await fetch(HOST + '/api/v1/friends/confirm_friend', options);
-        let responseJSON = await response.json();
-        console.log('[confirmFriend] - Confirmed friend: ' + friend_username + ' for user: ' + this.props.screenProps.username + ' Result: ' + JSON.stringify(responseJSON.success));
+        this.props.postConfirmFriend('/api/v1/friends/confirm_friend', headers, data);
+        console.log('[confirmFriend] - Confirmed friend: ' + friend_username + ' for user: ' + this.props.profile.username + ' Result: ' + JSON.stringify(this.props.response.status));
         Alert.alert(friend_username + ' added!', 'You have added ' + friend_username + ' to your friends list!');
         // Don't query the server again in the future, just add them to the friends array.
-        await this.getFriends();
         await this.getPendingFriends();
+        await this.getFriends();
     }
 
     async removeFriend(friend_username) {
         let data = this.createFormData({ username: friend_username });
-        console.log('[removeFriend] - User auth token is: ' + this.props.screenProps.authToken + ' removed friend is: ' + this.state.confirm_friend_text + ' Form data: ' + JSON.stringify(data));
-        const myHeaders = new Headers({
-            'Authorization': 'JWT ' + this.props.screenProps.authToken
+        console.log('[removeFriend] - User auth token is: ' + this.props.jwt_token + ' removed friend is: ' + this.state.confirm_friend_text + ' Form data: ' + JSON.stringify(data));
+        const headers = new Headers({
+            'Authorization': 'JWT ' + this.props.jwt_token
         });
-        var options = {
-            method: 'POST',
-            headers: myHeaders,
-            body: data
-        }
-        let response = await fetch(HOST + '/api/v1/friends/remove_friend', options);
-        let responseJSON = await response.json();
-        console.log('[removeFriend] - Confirmed friend: ' + friend_username + ' for user: ' + this.props.screenProps.username + ' Result: ' + JSON.stringify(responseJSON.success));
+        await this.props.postRemoveFriend('/api/v1/friends/remove_friend', headers, data);
+        console.log('[removeFriend] - Confirmed friend: ' + friend_username + ' for user: ' + this.props.profile.username + ' Result: ' + JSON.stringify(this.props.response.success));
         Alert.alert(friend_username + ' removed', 'You have removed ' + friend_username + ' from your friends list.');
         // Don't query the server again in the future, just add them to the friends array.
         await this.getFriends();
@@ -274,25 +216,14 @@ export default class ProfileScreen extends Component {
                 pictureDetails.name = response.fileName;
 
 
-                let data = this.createFormData({ profile_picture: pictureDetails, username: this.props.screenProps.username });
-                const myHeaders = new Headers({
-                    'Authorization': 'JWT ' + this.props.screenProps.authToken
+                let data = this.createFormData({ profile_picture: pictureDetails, username: this.props.profile.username });
+                const headers = new Headers({
+                    'Authorization': 'JWT ' + this.props.jwt_token
                 });
-                var options = {
-                    method: 'POST',
-                    headers: myHeaders,
-                    body: data
-                }
-                let serverResponse = await fetch(HOST + '/api/v1/users/set_profile_picture', options);
-                let responseJSON = await serverResponse.json();
+                await this.props.postSetProfilePicture('/api/v1/users/set_profile_picture', headers, data);
+                
                 Alert.alert('Success', 'You have successfully added your new profile picture!');
-
-                this.setState({
-                    profile: {
-                        ...this.state.profile,
-                        profile_picture: Platform.OS == 'android' ? response.path : response.uri
-                    }
-                });
+                this.props.setProfilePictureLocalPath(Platform.OS == 'android' ? response.path : response.uri);
             }
         });
     }
@@ -304,44 +235,32 @@ export default class ProfileScreen extends Component {
             }))
         }
         else if (this.state.isEditingBio) {
-            let data = this.createFormData({ bio: this.state.profile.bio, username: this.props.screenProps.username });
-            const myHeaders = new Headers({
-                'Authorization': 'JWT ' + this.props.screenProps.authToken
+            let data = this.createFormData({ bio: this.state.profile.bio, username: this.props.profile.username });
+            const headers = new Headers({
+                'Authorization': 'JWT ' + this.props.jwt_token
             });
-            var options = {
-                method: 'POST',
-                headers: myHeaders,
-                body: data
-            }
             console.log('[setProfileBio] - Setting bio to: ' + this.state.profile.bio);
-            let response = await fetch(HOST + '/api/v1/users/set_profile_bio', options);
-            let responseJSON = await response.json();
-            console.log('[setProfileBio] - Successfully added bio to profile, bio: ' + responseJSON.bio);
-            Alert.alert('Bio changed!', 'You have successfully changed your bio.');
-            this.setState((prevState) => ({
-                profile: {
-                    ...prevState.profile,
-                    bio: this.state.profile.bio
-                },
-                isEditingBio: false
-            }))
+            await this.props.postSetProfileBio('/api/v1/users/set_profile_bio', headers, data, this.state.profile.bio);
+
+            if (this.props.response.status === '200') {
+                console.log('[setProfileBio] - Successfully added bio to profile, bio: ' + this.props.profile.bio);
+                Alert.alert('Bio changed!', 'You have successfully changed your bio.');
+            }
+            else {
+                Alert.alert('Uh oh!', 'A network problem has occurred!');
+            }
+            this.setState(() => ({isEditingBio: false}));
         }
     }
 
     async removePendingFriend(friend_username) {
         let data = this.createFormData({ username: friend_username });
-        console.log('[removePendingFriend] - User auth token is: ' + this.props.screenProps.authToken + ' removed pending friend is: ' + this.state.confirm_friend_text + ' Form data: ' + JSON.stringify(data));
-        const myHeaders = new Headers({
-            'Authorization': 'JWT ' + this.props.screenProps.authToken
+        console.log('[removePendingFriend] - User auth token is: ' + this.props.jwt_token + ' removed pending friend is: ' + this.state.confirm_friend_text + ' Form data: ' + JSON.stringify(data));
+        const headers = new Headers({
+            'Authorization': 'JWT ' + this.props.jwt_token
         });
-        var options = {
-            method: 'POST',
-            headers: myHeaders,
-            body: data
-        }
-        let response = await fetch(HOST + '/api/v1/friends/remove_pending_friend', options);
-        let responseJSON = await response.json();
-        console.log('[removePendingFriend] - Pending friend: ' + friend_username + ' for user: ' + this.props.screenProps.username + ' Result: ' + JSON.stringify(responseJSON.success));
+        await this.props.postRemovePendingFriend('/api/v1/friends/remove_pending_friend', headers, data);
+        console.log('[removePendingFriend] - Pending friend: ' + friend_username + ' for user: ' + this.props.profile.username + ' Result: ' + JSON.stringify(this.props.response.success));
         Alert.alert(friend_username + ' removed', 'You have removed ' + friend_username + ' from your friends list.');
         // Don't query the server again in the future, just add them to the friends array.
         this.getPendingFriends();
@@ -360,13 +279,6 @@ export default class ProfileScreen extends Component {
         console.log('[startChat] - CURRENT USER PK: ' + this.state.profile.pk);
         this.props.navigation.navigate('Chat', {
             friend_id: friend_id,
-            user_profile_id: this.state.profile.pk,
-            // Send user object to Chat Screen so that the chat can use the user's profile information.
-            user: {
-                _id: this.state.profile.pk,
-                name: this.state.profile.username,
-                avatar: this.state.profile_picture_server_path,
-            }
         });
     }
 
@@ -380,13 +292,10 @@ export default class ProfileScreen extends Component {
             this.getFriends().catch((e) => console.log('Error: ' + e.message)),
             this.getPendingFriends().catch((e) => console.log('Error: ' + e.message)),
         ]);
-        this.setState(() => ({
-            busy: false
-        }))
     }
-    
+
     renderActivityIndicator() {
-        if (this.state.busy) {
+        if (this.props.loading) {
             return (
                 <ActivityIndicator
                     style={{
@@ -439,17 +348,17 @@ export default class ProfileScreen extends Component {
                         null
                 }
                 {
-                    this.state.pending_friends.length > 0 ?
+                    this.props.pending_friends.length > 0 ?
                         <View>
                             <Text style={{ fontSize: 18, marginLeft: '1%', fontWeight: 'bold', marginBottom: 10 }}>Pending friends</Text>
                             <FlatList
                                 style={{ marginBottom: 10 }}
-                                data={this.state.pending_friends}
+                                data={this.props.pending_friends}
                                 renderItem={({ item, index, separators }) => (
                                     <View style={styles.postContentContainer}>
                                         <View style={styles.postPictureGroupContainer}>
                                             <View style={styles.postPictureContainer}>
-                                                {item.profile_picture !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture : item.profile_picture }} /> : null}
+                                                {item.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture_local_path : item.profile_picture_local_path }} /> : null}
                                             </View>
                                             <Text>{item.username}</Text>
                                         </View>
@@ -488,7 +397,7 @@ export default class ProfileScreen extends Component {
                         fontSize: 16,
                         borderRadius: 7,
                         backgroundColor: 'white'
-                    }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.state.profile.bio}</TextInput>
+                    }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.props.profile.bio}</TextInput>
                     <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
                         <TouchableOpacity onPress={this.setProfileBio}>
                             <Text style={{ margin: '2%', fontWeight: 'bold' }}>Save</Text>
@@ -504,7 +413,7 @@ export default class ProfileScreen extends Component {
                         textAlign: 'center',
                         fontSize: 16,
                         borderRadius: 7,
-                    }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.state.profile.bio}</Text>
+                    }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.props.profile.bio}</Text>
                     <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
                         <TouchableOpacity onPress={this.setProfileBio}>
                             <Text style={{ margin: '2%' }}>edit</Text>
@@ -525,7 +434,7 @@ export default class ProfileScreen extends Component {
 
                             <View style={styles.profileBannerPictureGroupContainer}>
                                 <View style={styles.profileBannerPictureContainer}>
-                                    {this.state.profile.profile_picture !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + this.state.profile.profile_picture : this.state.profile.profile_picture }} /> : null}
+                                    {this.props.profile.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + this.props.profile.profile_picture_local_path : this.props.profile.profile_picture_local_path }} /> : null}
                                 </View>
                                 <TouchableOpacity onPress={this.setProfilePicture}>
                                     <Text style={styles.profileBannerUploadPhotoText}>Upload photo</Text>
@@ -535,7 +444,7 @@ export default class ProfileScreen extends Component {
                             <View style={styles.profileBannerBodyContainer}>
 
                                 <View style={styles.profileBannerBodyNameContainer}>
-                                    <Text style={styles.profileBannerBodyName}>{this.state.profile.username}</Text>
+                                    <Text style={styles.profileBannerBodyName}>{this.props.profile.username}</Text>
                                 </View>
 
                                 {this.renderBioField(this.state.isEditingBio)}
@@ -565,12 +474,12 @@ export default class ProfileScreen extends Component {
 
                             <FlatList
                                 style={styles.postsContainer}
-                                data={this.state.friends}
+                                data={this.props.friends}
                                 renderItem={({ item, index, separators }) => (
                                     <View style={styles.postContentContainer}>
                                         <View style={styles.postPictureGroupContainer}>
                                             <View style={styles.postPictureContainer}>
-                                                {item.profile_picture !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture : item.profile_picture }} /> : null}
+                                                {item.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture_local_path : item.profile_picture_local_path }} /> : null}
                                             </View>
                                             <Text>{item.username}</Text>
                                         </View>
@@ -599,7 +508,7 @@ export default class ProfileScreen extends Component {
 
                             <View style={styles.profileBannerPictureGroupContainer}>
                                 <View style={styles.profileBannerPictureContainer}>
-                                    {this.state.profile.profile_picture !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + this.state.profile.profile_picture : this.state.profile.profile_picture }} /> : null}
+                                    {this.props.profile.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + this.props.profile.profile_picture_local_path : this.props.profile.profile_picture_local_path }} /> : null}
                                 </View>
                                 <TouchableOpacity onPress={this.setProfilePicture}>
                                     <Text style={styles.profileBannerUploadPhotoText}>Upload photo</Text>
@@ -609,7 +518,7 @@ export default class ProfileScreen extends Component {
                             <View style={styles.profileBannerBodyContainer}>
 
                                 <View style={styles.profileBannerBodyNameContainer}>
-                                    <Text style={styles.profileBannerBodyName}>{this.state.profile.username}</Text>
+                                    <Text style={styles.profileBannerBodyName}>{this.props.profile.username}</Text>
                                 </View>
 
                                 {this.renderBioField(this.state.isEditingBio)}
@@ -641,12 +550,12 @@ export default class ProfileScreen extends Component {
 
                             <FlatList
                                 style={styles.postsContainer}
-                                data={this.state.friends}
+                                data={this.props.friends}
                                 renderItem={({ item, index, separators }) => (
                                     <View style={styles.postContentContainer}>
                                         <View style={styles.postPictureGroupContainer}>
                                             <View style={styles.postPictureContainer}>
-                                                {item.profile_picture !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture : item.profile_picture }} /> : null}
+                                                {item.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture_local_path : item.profile_picture_local_path }} /> : null}
                                             </View>
                                             <Text>{item.username}</Text>
                                         </View>
@@ -669,6 +578,45 @@ export default class ProfileScreen extends Component {
 
     }
 }
+
+// Refers to the Redux state
+const mapStateToProps = state => {
+    let response = state.response;
+    let loading = state.loading;
+    let jwt_token = state.jwt_token;
+    let profile = state.profile;
+    let friends = state.friends;
+    let pending_friends = state.pending_friends;
+
+    return {
+        friends: friends,
+        pending_friends,
+        loading: loading,
+        jwt_token: jwt_token,
+        profile: profile,
+        response: response
+    };
+};
+
+const mapDispatchToProps = {
+    getHttp,
+    getFriends,
+    getPendingFriends,
+
+    postHttp,
+    postConfirmFriend,
+    postRemoveFriend,
+    postRemovePendingFriend,
+    postRequestFriend,
+    postSetProfileBio,
+    postSetProfilePicture,
+
+    setFriendPictureLocalPath,
+    setPendingFriendPictureLocalPath,
+    setProfilePictureLocalPath
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(ProfileScreen);
 
 const styles = StyleSheet.create({
     container: {
@@ -698,12 +646,12 @@ const styles = StyleSheet.create({
     },
     // Adjusting the flex fixes the border issue with the images.
     profileBannerPictureGroupContainer: {
-        flex: .75,
+        flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
     },
     profileBannerPictureContainer: {
-        flex: .7,
+        flex: 1,
         aspectRatio: 1,
         borderRadius: 200,
         margin: '2%',

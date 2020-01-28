@@ -304,7 +304,7 @@ export default function reducer(state = { baseURL: 'http://rena-chat.herokuapp.c
                     // Add bio payload from initial request.
                     bio: action.meta.previousAction.payload.bio
                 },
-                response: action.payload.data,
+                response: action.payload,
             };
         case POST_SET_PROFILE_BIO_FAIL:
             return {

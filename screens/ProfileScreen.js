@@ -242,12 +242,12 @@ export class ProfileScreen extends Component {
             console.log('[setProfileBio] - Setting bio to: ' + this.state.profile.bio);
             await this.props.postSetProfileBio('/api/v1/users/set_profile_bio', headers, data, this.state.profile.bio);
 
-            if (this.props.response.status === '200') {
+            if (this.props.response.status === 200) {
                 console.log('[setProfileBio] - Successfully added bio to profile, bio: ' + this.props.profile.bio);
                 Alert.alert('Bio changed!', 'You have successfully changed your bio.');
             }
             else {
-                Alert.alert('Uh oh!', 'A network problem has occurred!');
+                Alert.alert('Uh oh!', JSON.stringify(this.props.response.status));
             }
             this.setState(() => ({isEditingBio: false}));
         }
@@ -483,8 +483,8 @@ export class ProfileScreen extends Component {
                                             </View>
                                             <Text>{item.username}</Text>
                                         </View>
-                                        <View style={{ flex: 1.05, marginRight: '2%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
-                                            <Text style={{ textAlign: 'center', paddingLeft: '20%' }}>{item.bio}</Text>
+                                        <View style={{ flex: 1.5, marginRight: '2%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
+                                            <Text style={{ textAlign: 'center', paddingLeft: '33%' }}>{item.bio}</Text>
                                             <TouchableOpacity onPress={this.removeFriend.bind(this, item.username)} style={{ margin: '1%', padding: '3%', borderRadius: 3, backgroundColor: 'black' }}>
                                                 <Text style={{ fontSize: 12, color: 'white' }}>Remove</Text>
                                             </TouchableOpacity>

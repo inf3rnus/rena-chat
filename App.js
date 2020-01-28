@@ -14,7 +14,7 @@ console.disableYellowBox = false;
 console.ignoredYellowBox = ['Warning: `-[RCTRootView cancelTouches]` is deprecated and will be deleted soon.'];
 
 const client = axios.create({
-  baseURL: 'http://10.0.2.2:8000',
+  baseURL: 'http://rena-chat.herokuapp.com',
   responseType: 'json'
 });
 

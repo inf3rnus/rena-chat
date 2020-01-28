@@ -221,7 +221,7 @@ export class ProfileScreen extends Component {
                     'Authorization': 'JWT ' + this.props.jwt_token
                 });
                 await this.props.postSetProfilePicture('/api/v1/users/set_profile_picture', headers, data);
-                
+
                 Alert.alert('Success', 'You have successfully added your new profile picture!');
                 this.props.setProfilePictureLocalPath(Platform.OS == 'android' ? response.path : response.uri);
             }
@@ -249,7 +249,7 @@ export class ProfileScreen extends Component {
             else {
                 Alert.alert('Uh oh!', 'A network problem has occurred!');
             }
-            this.setState(() => ({isEditingBio: false}));
+            this.setState(() => ({ isEditingBio: false }));
         }
     }
 
@@ -363,7 +363,9 @@ export class ProfileScreen extends Component {
                                             <Text>{item.username}</Text>
                                         </View>
                                         <View style={{ flex: 1.5, marginRight: '2%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
-                                            <Text style={{ textAlign: 'center', paddingLeft: '33%' }}>{item.bio}</Text>
+                                            <View style={{ flex: 1, alignItems: 'center' }}>
+                                                <Text style={{ textAlign: 'center' }}>{item.bio}</Text>
+                                            </View>
                                             <TouchableOpacity onPress={this.confirmFriend.bind(this, item.username)} style={{ margin: '1%', padding: '3%', borderRadius: 3, backgroundColor: 'black' }}>
                                                 <Text style={{ fontSize: 12, color: 'white' }}>Add</Text>
                                             </TouchableOpacity>
@@ -484,7 +486,9 @@ export class ProfileScreen extends Component {
                                             <Text>{item.username}</Text>
                                         </View>
                                         <View style={{ flex: 1.5, marginRight: '2%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
-                                            <Text style={{ textAlign: 'center', paddingLeft: '33%' }}>{item.bio}</Text>
+                                            <View style={{ flex: 1, alignItems: 'center' }}>
+                                                <Text style={{ textAlign: 'center' }}>{item.bio}</Text>
+                                            </View>
                                             <TouchableOpacity onPress={this.removeFriend.bind(this, item.username)} style={{ margin: '1%', padding: '3%', borderRadius: 3, backgroundColor: 'black' }}>
                                                 <Text style={{ fontSize: 12, color: 'white' }}>Remove</Text>
                                             </TouchableOpacity>
@@ -559,8 +563,10 @@ export class ProfileScreen extends Component {
                                             </View>
                                             <Text>{item.username}</Text>
                                         </View>
-                                        <View style={{ flex: 1.05, marginRight: '2%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
-                                            <Text style={{ textAlign: 'center', paddingLeft: '20%' }}>{item.bio}</Text>
+                                        <View style={{ flex: 1.5, marginRight: '2%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
+                                            <View style={{ flex: 1, alignItems: 'center' }}>
+                                                <Text style={{ textAlign: 'center' }}>{item.bio}</Text>
+                                            </View>
                                             <TouchableOpacity onPress={this.startChat.bind(this, item.pk)} style={{ margin: '1%', padding: '3%', borderRadius: 3, backgroundColor: 'black' }}>
                                                 <Text style={{ fontSize: 12, color: 'white' }}>Chat</Text>
                                             </TouchableOpacity>

@@ -184,7 +184,7 @@ var styles = StyleSheet.create({
     formContainer: {
         flex: .8,
         width: '80%',
-        justifyContent: 'space-evenly',
+        justifyContent: 'space-around',
     },
     textFieldContainer: {
         flex: .6,

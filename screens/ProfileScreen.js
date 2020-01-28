@@ -247,7 +247,7 @@ export class ProfileScreen extends Component {
                 Alert.alert('Bio changed!', 'You have successfully changed your bio.');
             }
             else {
-                Alert.alert('Uh oh!', JSON.stringify(this.props.response.status));
+                Alert.alert('Uh oh!', 'A network problem has occurred!');
             }
             this.setState(() => ({isEditingBio: false}));
         }

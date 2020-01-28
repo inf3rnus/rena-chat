@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, AsyncStorage, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, Text, TextInput, TouchableOpacity, View, Button, Platform } from 'react-native';
+import { ActivityIndicator, Alert, AsyncStorage, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, Text, TextInput, TouchableOpacity, View, Button, Platform } from 'react-native';
 import { connect } from 'react-redux';
 import { getPreviousMessages } from './reducer';
 import { GiftedChat } from 'react-native-gifted-chat';
@@ -29,6 +29,7 @@ export class ChatScreen extends Component {
         }
         this.setupWebsocket = this.setupWebsocket.bind(this);
         this.getPreviousMessages = this.getPreviousMessages.bind(this);
+        this.renderActivityIndicator = this.renderActivityIndicator.bind(this);
     }
 
     socket;
@@ -114,10 +115,29 @@ export class ChatScreen extends Component {
         this.socket.close();
     }
 
+    renderActivityIndicator() {
+        if (this.props.loading) {
+            return (
+                <ActivityIndicator
+                    style={{
+                        alignSelf: 'center',
+                        position: 'absolute',
+                        top: '40%',
+                        zIndex: 50
+                    }}
+                    color='blue'
+                    size='large'
+                />
+            );
+        }
+        else
+            return (null);
+    }
 
     render() {
         return (
             <View style={{ flex: 1 }}>
+                {this.renderActivityIndicator()}
                 <GiftedChat
                     style={{ flex: 1, alignSelf: 'stretch', height: 200 }}
                     messages={this.state.messages}

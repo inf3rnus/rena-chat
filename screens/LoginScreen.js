@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, AsyncStorage, Image, Keyboard, StyleSheet, Pe
 import { connect } from 'react-redux';
 import { postHttp } from './reducer';
 import { TextInput } from 'react-native-gesture-handler';
+import LinearGradient from 'react-native-linear-gradient';
 
 //const HOST = 'http://10.0.2.2:8000';
 const HOST = 'http://rena-chat.herokuapp.com';
@@ -86,7 +87,10 @@ export class UserLogin extends Component {
     render() {
         return (
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={styles.container}>
+                <LinearGradient
+                    start={{ x: 0.0, y: 0.25 }} end={{ x: 0.5, y: 1.0 }}
+                    colors={['white', 'grey']} 
+                    style={styles.container}>
                     {this.renderActivityIndicator()}
                     <View style={styles.formContainer}>
                         <View style={styles.textFieldContainer}>
@@ -126,9 +130,8 @@ export class UserLogin extends Component {
                             <Image style={styles.pinLogo} source={null} />
                         </View>
                     </View>
-                </View>
+                </LinearGradient>
             </TouchableWithoutFeedback>
-
         );
     }
 }
@@ -156,7 +159,7 @@ var styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'column',
         alignItems: 'center',
-        backgroundColor: 'white',
+        backgroundColor: 'lightgrey',
         padding: 20
     },
     title: {

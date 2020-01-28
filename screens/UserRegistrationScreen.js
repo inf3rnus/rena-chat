@@ -143,7 +143,7 @@ export class UserRegistration extends Component {
                     </View>
                     <View style={styles.appLogoContainer}>
                         <View style={styles.pinContainer}>
-                            <Image style={styles.pinLogo} source={null} />
+                            <Image style={styles.pinLogo} source={require('./images/rena-chat-logo-short.png')} />
                         </View>
                     </View>
                 </LinearGradient>
@@ -179,7 +179,7 @@ var styles = StyleSheet.create({
     title: {
         fontSize: 32,
         color: 'black',
-        marginTop: '3%',
+        marginTop: '1%',
     },
     formContainer: {
         flex: .8,
@@ -208,18 +208,18 @@ var styles = StyleSheet.create({
         borderRadius: 5
     },
     pinContainer: {
-        marginTop: 30,
-        width: 130,
-        height: 130,
-        alignSelf: 'stretch',
     },
     pinLogo: {
-        flex: 1,
+        width: '10%',
         height: undefined,
-        width: undefined
+        aspectRatio: 1,
+        resizeMode: 'contain'
     },
     appLogoContainer: {
-        justifyContent: 'center',
+        alignSelf: 'flex-end',
+        flex: .4,
+        top: '2%',
+        justifyContent: 'flex-end',
         alignItems: 'center',
     },
 })

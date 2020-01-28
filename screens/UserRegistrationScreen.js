@@ -4,6 +4,7 @@ import { StackActions, NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import { postHttp } from './reducer';
 import { TextInput } from 'react-native-gesture-handler';
+import LinearGradient from 'react-native-linear-gradient';
 
 //const HOST = 'http://10.0.2.2:8000';
 const HOST = 'http://rena-chat.herokuapp.com';
@@ -94,7 +95,10 @@ export class UserRegistration extends Component {
     render() {
         return (
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={styles.container}>
+                <LinearGradient
+                    start={{ x: 0.0, y: 0.25 }} end={{ x: 0.5, y: 1.0 }}
+                    colors={['white', 'grey']}
+                    style={styles.container}>
                     {this.renderActivityIndicator()}
                     <Text style={styles.title}>Create Account</Text>
                     <View style={styles.formContainer}>
@@ -142,7 +146,7 @@ export class UserRegistration extends Component {
                             <Image style={styles.pinLogo} source={null} />
                         </View>
                     </View>
-                </View>
+                </LinearGradient>
             </TouchableWithoutFeedback>
         );
     }

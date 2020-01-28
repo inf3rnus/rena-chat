@@ -47,7 +47,7 @@ const AppNavigator = createStackNavigator(
         height: undefined,
         width: undefined,
         resizeMode: 'contain',
-      }} source={require('./screens/images/rena-chat-logo.png')} />,
+      }} source={require('./screens/images/rena-chat-logo-2.png')} />,
 
       headerTintColor: '#fff',
       headerTitleStyle: {

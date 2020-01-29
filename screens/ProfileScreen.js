@@ -13,11 +13,8 @@ export class ProfileScreen extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            profile: {
-
-            },
+            profile: this.props.profile,
             topBarOption: 'friends',
-
             request_friend_text: null,
             confirm_friend_text: null,
 

@@ -8,7 +8,7 @@ import axiosMiddleware from 'redux-axios-middleware';
 import reducer from './screens/reducer';
 import { AsyncStorage } from 'react-native';
 
-console.disableYellowBox = false;
+console.disableYellowBox = true;
 
 // BS message from RN, [RCTRootView cancelTouches] will not be deprecated according to github.
 console.ignoredYellowBox = ['Warning: `-[RCTRootView cancelTouches]` is deprecated and will be deleted soon.'];

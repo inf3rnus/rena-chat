@@ -53,7 +53,7 @@ export class ChatScreen extends Component {
                 case 'start_chat':
                     console.log('[onmessage] - start_chat fired, data contents: ' + JSON.stringify(data));
                     this.state.conversation_id = data.conversation_id;
-                    this.getPreviousMessages(this.state.conversation_id);
+                    this.getPreviousMessages(data.conversation_id);
                     break;
                 default:
                     console.log('[onmessage] - receive_chat fired, data contents: ' + e.data);

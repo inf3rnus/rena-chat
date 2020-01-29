@@ -5,9 +5,9 @@ import { getPreviousMessages } from './reducer';
 import { GiftedChat } from 'react-native-gifted-chat';
 
 //const HOST = 'http://10.0.2.2:8000';
-const HOST = 'http://rena-chat.herokuapp.com';
+const HOST = 'https://rena-chat.herokuapp.com';
 //const WS_HOST = 'ws://10.0.2.2:8000';
-const WS_HOST = 'ws://rena-chat.herokuapp.com';
+const WS_HOST = 'wss://rena-chat.herokuapp.com';
 const LIMIT = 10;
 
 export class ChatScreen extends Component {

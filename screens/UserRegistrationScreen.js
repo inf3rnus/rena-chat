@@ -7,7 +7,7 @@ import { TextInput } from 'react-native-gesture-handler';
 import LinearGradient from 'react-native-linear-gradient';
 
 //const HOST = 'http://10.0.2.2:8000';
-const HOST = 'http://rena-chat.herokuapp.com';
+const HOST = 'https://rena-chat.herokuapp.com';
 
 export class UserRegistration extends Component {
     constructor(props) {

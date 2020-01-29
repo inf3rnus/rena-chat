@@ -160,12 +160,14 @@ export class ProfileScreen extends Component {
         const headers = new Headers({
             'Authorization': 'JWT ' + this.props.jwt_token
         });
-        this.props.postConfirmFriend('/api/v1/friends/confirm_friend', headers, data);
-        console.log('[confirmFriend] - Confirmed friend: ' + friend_username + ' for user: ' + this.props.profile.username + ' Result: ' + JSON.stringify(this.props.response.status));
-        Alert.alert(friend_username + ' added!', 'You have added ' + friend_username + ' to your friends list!');
-        // Don't query the server again in the future, just add them to the friends array.
-        await this.getPendingFriends();
-        await this.getFriends();
+        let response = await this.props.postConfirmFriend('/api/v1/friends/confirm_friend', headers, data);
+        if (response.payload.status === 200) {
+            console.log('[confirmFriend] - Confirmed friend: ' + friend_username + ' for user: ' + this.props.profile.username + ' Result: ' + JSON.stringify(this.props.response.status));
+            Alert.alert(friend_username + ' added!', 'You have added ' + friend_username + ' to your friends list!');
+            // Don't query the server again in the future, just add them to the friends array.
+            this.getPendingFriends();
+            this.getFriends();
+        }
     }
 
     async removeFriend(friend_username) {

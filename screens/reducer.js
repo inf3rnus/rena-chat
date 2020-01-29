@@ -160,7 +160,6 @@ export default function reducer(state = { baseURL: 'http://rena-chat.herokuapp.c
             // Messages object contains a results property that stores individual messages in an array
             action.payload.data.results.forEach((message) => {
                 var message_contents_object = JSON.parse(message.message_contents);
-                console.log('[getPreviousMessages] - Current Message ID from the API is: ' + JSON.stringify(message.id));
                 message_contents_object._id = message.id;
                 message.message_contents = JSON.stringify(message_contents_object);
     

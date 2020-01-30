@@ -136,7 +136,6 @@ export default function reducer(state = { baseURL: 'https://rena-chat.herokuapp.
                 response: action.payload,
                 profile: {
                     ...action.payload.data,
-                    profile_picture_server_path: state.baseURL + action.payload.data.profile_picture,
                 }
             };
         case GET_PROFILE_FAIL:

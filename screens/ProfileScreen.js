@@ -42,7 +42,7 @@ export class ProfileScreen extends Component {
         await this.props.getHttp('/api/v1/users/get_current_profile', headers);
 
         console.log('[getProfile] - Current user profile\'s details: ' + JSON.stringify(this.props.profile));
-        console.log('[getProfile] - Picture SERVER PATH equal to: ' + this.props.profile.profile_picture_server_path);
+        console.log('[getProfile] - Picture SERVER PATH equal to: ' + this.props.profile.profile_picture);
 
         let localPicturePath = null;
 
@@ -54,7 +54,7 @@ export class ProfileScreen extends Component {
                     // response data will be saved to this path if it has access right.
                     path: dirs.CacheDir + '/' + filename
                 })
-                .fetch('GET', HOST + this.props.profile.profile_picture, {
+                .fetch('GET', this.props.profile.profile_picture, {
                     //some headers ..
                 })
                 .then((res) => {
@@ -91,7 +91,7 @@ export class ProfileScreen extends Component {
                         // response data will be saved to this path if it has access right.
                         path: dirs.CacheDir + '/' + filename
                     })
-                    .fetch('GET', HOST + friend.profile_picture, {
+                    .fetch('GET', friend.profile_picture, {
                         //some headers ..
                     })
                     .then((res) => {
@@ -126,7 +126,7 @@ export class ProfileScreen extends Component {
                         // response data will be saved to this path if it has access right.
                         path: dirs.CacheDir + '/' + filename
                     })
-                    .fetch('GET', HOST + friend.profile_picture, {
+                    .fetch('GET', friend.profile_picture, {
                         //some headers ..
                     })
                     .then((res) => {

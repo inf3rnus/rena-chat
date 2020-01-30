@@ -4,9 +4,6 @@ import { connect } from 'react-redux';
 import { getPreviousMessages } from './reducer';
 import { GiftedChat } from 'react-native-gifted-chat';
 
-//const HOST = 'http://10.0.2.2:8000';
-const HOST = 'https://rena-chat.herokuapp.com';
-//const WS_HOST = 'ws://10.0.2.2:8000';
 const WS_HOST = 'wss://rena-chat.herokuapp.com';
 const LIMIT = 10;
 
@@ -18,7 +15,7 @@ export class ChatScreen extends Component {
             user: {
                 _id: this.props.profile.pk,
                 name: this.props.profile.username,
-                avatar: this.props.profile.profile_picture_server_path,
+                avatar: this.props.profile.profile_picture,
             },
             friend_user_id: this.props.navigation.state.params.friend_id,
             conversation_id: null,
@@ -78,7 +75,7 @@ export class ChatScreen extends Component {
 
         console.log('[getPreviousMessages] - Offset is: ' + this.state.page_offset);
 
-        await this.props.getPreviousMessages(HOST + '/api/v1/chat/get_conversation_messages?limit=' + LIMIT + '&offset=' + this.state.page_offset + '&conversation_id=' + conversation_id, headers);
+        await this.props.getPreviousMessages('/api/v1/chat/get_conversation_messages?limit=' + LIMIT + '&offset=' + this.state.page_offset + '&conversation_id=' + conversation_id, headers);
         this.state.page_offset += 10;
 
         console.log('[getPreviousMessages] - JSON response is: ' + JSON.stringify(this.props.messages));

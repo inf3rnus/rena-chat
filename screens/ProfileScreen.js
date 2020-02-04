@@ -362,7 +362,7 @@ export class ProfileScreen extends Component {
                                             </View>
                                             <Text>{item.username}</Text>
                                         </View>
-                                        <View style={{ flex: 1.5, marginRight: '2%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
+                                        <View style={{ flex: 1.5, marginRight: '4%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
                                             <View style={{ flex: 1, alignItems: 'center' }}>
                                                 <Text style={{ textAlign: 'center' }}>{item.bio}</Text>
                                             </View>
@@ -495,7 +495,7 @@ export class ProfileScreen extends Component {
                                             </View>
                                             <Text>{item.username}</Text>
                                         </View>
-                                        <View style={{ flex: 1.5, marginRight: '2%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
+                                        <View style={{ flex: 1.5, marginRight: '4%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
                                             <View style={{ flex: 1, alignItems: 'center' }}>
                                                 <Text style={{ textAlign: 'center' }}>{item.bio}</Text>
                                             </View>
@@ -583,7 +583,7 @@ export class ProfileScreen extends Component {
                                             </View>
                                             <Text>{item.username}</Text>
                                         </View>
-                                        <View style={{ flex: 1.5, marginRight: '2%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
+                                        <View style={{ flex: 1.5, marginRight: '4%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
                                             <View style={{ flex: 1, alignItems: 'center' }}>
                                                 <Text style={{ textAlign: 'center' }}>{item.bio}</Text>
                                             </View>
@@ -807,12 +807,12 @@ const styles = StyleSheet.create({
     postsContainer: {
         flex: 1,
         color: 'red',
-        margin: '2%',
+        margin: '4%',
         zIndex: 50,
 
     },
     postContentContainer: {
-        height: 95,
+        height: 110,
         flexDirection: 'row',
         alignSelf: 'stretch',
         justifyContent: 'space-evenly',
@@ -825,12 +825,13 @@ const styles = StyleSheet.create({
         flex: .6,
         alignItems: 'center',
         justifyContent: 'center',
+        padding: '3%',
+        marginBottom: '5%'
     },
     postPictureContainer: {
         flex: 1,
         aspectRatio: 1,
         borderRadius: 200,
-        margin: '2%',
         backgroundColor: 'white'
     },
     postPicture: {

@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
-import { ActivityIndicator, Alert, AsyncStorage, FlatList, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View, Button, Platform } from 'react-native';
+import { ActivityIndicator, Alert, AsyncStorage, FlatList, Image, Keyboard, KeyboardAvoidingView, StyleSheet, PermissionsAndroid, AppRegistry, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View, Button, Platform } from 'react-native';
 import { connect } from 'react-redux';
 import { getHttp, getFriends, getPendingFriends, postHttp, postRequestFriend, postConfirmFriend, postRemoveFriend, postSetProfileBio, postSetProfilePicture, postRemovePendingFriend, setFriendPictureLocalPath, setPendingFriendPictureLocalPath, setProfilePictureLocalPath } from './reducer';
 import ImagePicker from 'react-native-image-picker';
 import { TextInput } from 'react-native-gesture-handler';
 import RNFetchBlob from 'rn-fetch-blob';
 import LinearGradient from 'react-native-linear-gradient';
+import SearchableDropdown from 'react-native-searchable-dropdown';
 
 const HOST = 'https://rena-chat.herokuapp.com';
 
@@ -19,6 +20,7 @@ export class ProfileScreen extends Component {
             request_friend_text: null,
             confirm_friend_text: null,
 
+            isSearchingFriends: false,
             isEditingBio: false,
         }
         this.changeBodyOption = this.changeBodyOption.bind(this);
@@ -329,21 +331,149 @@ export class ProfileScreen extends Component {
         );
     }
     renderListHeader(shouldRenderFriendBar) {
+        var items = [
+            {
+                id: 1,
+                name: 'JavaScript',
+            },
+            {
+                id: 2,
+                name: 'Java',
+            },
+            {
+                id: 3,
+                name: 'Ruby',
+            },
+            {
+                id: 4,
+                name: 'React Native',
+            },
+            {
+                id: 5,
+                name: 'PHP',
+            },
+            {
+                id: 6,
+                name: 'Python',
+            },
+            {
+                id: 7,
+                name: 'Go',
+            },
+            {
+                id: 8,
+                name: 'Swift',
+            },
+            {
+                id: 3,
+                name: 'Ruby',
+            },
+            {
+                id: 4,
+                name: 'React Native',
+            },
+            {
+                id: 5,
+                name: 'PHP',
+            },
+            {
+                id: 6,
+                name: 'Python',
+            },
+            {
+                id: 7,
+                name: 'Go',
+            },
+            {
+                id: 8,
+                name: 'Swift',
+            },
+            {
+                id: 9,
+                name: 'Ruby',
+            },
+            {
+                id: 10,
+                name: 'React Native',
+            },
+            {
+                id: 11,
+                name: 'PHP',
+            },
+            {
+                id: 12,
+                name: 'Python',
+            },
+            {
+                id: 13,
+                name: 'Go',
+            },
+            {
+                id: 14,
+                name: 'Swift',
+            },
+            {
+                id: 15,
+                name: 'Ruby',
+            },
+            {
+                id: 16,
+                name: 'React Native',
+            },
+            {
+                id: 17,
+                name: 'PHP',
+            },
+            {
+                id: 18,
+                name: 'Python',
+            },
+            {
+                id: 19,
+                name: 'Go',
+            },
+            {
+                id: 20,
+                name: 'Swift',
+            },
+        ];
         return (
             <View style={{ flex: 1, alignSelf: 'stretch', marginBottom: 10 }}>
                 {
                     shouldRenderFriendBar === true ?
-                        <View style={styles.addFriendBar}>
-                            <TextInput
-                                style={styles.addFriendBarTextField}
-                                onChangeText={(text) => this.state.request_friend_text = text}
-                                placeholder='Request friend'
-                                placeholderTextColor='grey'
-                            />
-                            <TouchableOpacity style={styles.addFriendBarButton} onPress={() => { this.requestFriend(this.state.request_friend_text) }}>
-                                <Text style={styles.addFriendBarText}>Add</Text>
-                            </TouchableOpacity>
-                        </View>
+                        <SearchableDropdown
+                            onItemSelect={(item) => {
+                                // Add friend option here...
+                            }}
+                            onRemoveItem={(item, index) => {
+                            }}
+                            itemStyle={{
+                                padding: 15,
+                                marginHorizontal: 10,
+                                marginTop: 5,
+                                backgroundColor: 'lightgrey',
+                                borderRadius: 8
+                            }}
+                            items={items}
+                            resetValue={false}
+                            containerStyle={{ marginBottom: 10 }}
+                            textInputProps={
+                                {
+                                    placeholder: "Request friend",
+                                    placeholderTextColor: 'black',
+                                    underlineColorAndroid: "transparent",
+                                    style: styles.addFriendBarTextField,
+                                    onTextChange: text => alert(text),
+                                    onFocus: () => { this.setState({ isSearchingFriends: true }) },
+                                    onBlur: () => { this.setState({ isSearchingFriends: false }) }
+                                }
+                            }
+                            listProps={
+                                {
+                                    nestedScrollEnabled: false,
+                                }
+                            }
+                        />
                         :
                         null
                 }
@@ -432,30 +562,35 @@ export class ProfileScreen extends Component {
                 <View style={styles.container}>
                     {this.renderActivityIndicator()}
                     <View style={styles.profileContainer}>
-                        <View style={styles.profileBanner}>
+                        {
+                            !this.state.isSearchingFriends ?
+                                <View style={styles.profileBanner}>
 
-                            <View style={styles.profileBannerPictureGroupContainer}>
-                                <View style={styles.profileBannerPictureContainer}>
-                                    {this.props.profile.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + this.props.profile.profile_picture_local_path : this.props.profile.profile_picture_local_path }} /> : null}
+                                    <View style={styles.profileBannerPictureGroupContainer}>
+                                        <View style={styles.profileBannerPictureContainer}>
+                                            {this.props.profile.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + this.props.profile.profile_picture_local_path : this.props.profile.profile_picture_local_path }} /> : null}
+                                        </View>
+                                        <TouchableOpacity onPress={this.setProfilePicture}>
+                                            <Text style={styles.profileBannerUploadPhotoText}>Upload photo</Text>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    <View style={styles.profileBannerBodyContainer}>
+
+                                        <View style={styles.profileBannerBodyNameContainer}>
+                                            <Text style={styles.profileBannerBodyName}>{this.props.profile.username}</Text>
+                                        </View>
+
+                                        {this.renderBioField(this.state.isEditingBio)}
+
+                                    </View>
+
                                 </View>
-                                <TouchableOpacity onPress={this.setProfilePicture}>
-                                    <Text style={styles.profileBannerUploadPhotoText}>Upload photo</Text>
-                                </TouchableOpacity>
-                            </View>
+                                :
+                                null
+                        }
 
-                            <View style={styles.profileBannerBodyContainer}>
-
-                                <View style={styles.profileBannerBodyNameContainer}>
-                                    <Text style={styles.profileBannerBodyName}>{this.props.profile.username}</Text>
-                                </View>
-
-                                {this.renderBioField(this.state.isEditingBio)}
-
-                            </View>
-
-                        </View>
-
-                        <View style={styles.bodyContainer}>
+                        <KeyboardAvoidingView behavior='height' style={styles.bodyContainer}>
                             <View style={styles.bodyTopBar}>
 
                                 <LinearGradient
@@ -509,7 +644,7 @@ export class ProfileScreen extends Component {
                                 ListHeaderComponent={this.renderListHeader.bind(this, true)}
                                 keyExtractor={item => item.username}
                             />
-                        </View>
+                        </KeyboardAvoidingView>
                     </View>
                 </View>
             );
@@ -518,28 +653,33 @@ export class ProfileScreen extends Component {
                 <View style={styles.container}>
                     {this.renderActivityIndicator()}
                     <View style={styles.profileContainer}>
-                        <View style={styles.profileBanner}>
+                        {
+                            !this.state.isSearchingFriends ?
+                                <View style={styles.profileBanner}>
 
-                            <View style={styles.profileBannerPictureGroupContainer}>
-                                <View style={styles.profileBannerPictureContainer}>
-                                    {this.props.profile.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + this.props.profile.profile_picture_local_path : this.props.profile.profile_picture_local_path }} /> : null}
+                                    <View style={styles.profileBannerPictureGroupContainer}>
+                                        <View style={styles.profileBannerPictureContainer}>
+                                            {this.props.profile.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + this.props.profile.profile_picture_local_path : this.props.profile.profile_picture_local_path }} /> : null}
+                                        </View>
+                                        <TouchableOpacity onPress={this.setProfilePicture}>
+                                            <Text style={styles.profileBannerUploadPhotoText}>Upload photo</Text>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    <View style={styles.profileBannerBodyContainer}>
+
+                                        <View style={styles.profileBannerBodyNameContainer}>
+                                            <Text style={styles.profileBannerBodyName}>{this.props.profile.username}</Text>
+                                        </View>
+
+                                        {this.renderBioField(this.state.isEditingBio)}
+
+                                    </View>
+
                                 </View>
-                                <TouchableOpacity onPress={this.setProfilePicture}>
-                                    <Text style={styles.profileBannerUploadPhotoText}>Upload photo</Text>
-                                </TouchableOpacity>
-                            </View>
-
-                            <View style={styles.profileBannerBodyContainer}>
-
-                                <View style={styles.profileBannerBodyNameContainer}>
-                                    <Text style={styles.profileBannerBodyName}>{this.props.profile.username}</Text>
-                                </View>
-
-                                {this.renderBioField(this.state.isEditingBio)}
-
-                            </View>
-
-                        </View>
+                                :
+                                null
+                        }
 
                         <View style={styles.bodyContainer}>
                             <View style={styles.bodyTopBar}>
@@ -722,6 +862,7 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         marginTop: '7%',
         backgroundColor: 'white',
+        zIndex: 51
     },
     bodyTopBar: {
         height: '10%',
@@ -787,7 +928,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderRadius: 5,
         justifyContent: 'center',
-        backgroundColor: 'black'
+        backgroundColor: 'black',
+        marginBottom: 10,
     },
 
     addFriendBarText: {
@@ -802,7 +944,8 @@ const styles = StyleSheet.create({
         borderColor: 'black',
         textAlign: 'center',
         backgroundColor: 'white',
-        color: 'black'
+        color: 'black',
+        zIndex: 52,
     },
     postsContainer: {
         flex: 1,

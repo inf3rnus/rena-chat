@@ -5,6 +5,7 @@ import { getHttp, getFriends, getPendingFriends, postHttp, postRequestFriend, po
 import ImagePicker from 'react-native-image-picker';
 import { TextInput } from 'react-native-gesture-handler';
 import RNFetchBlob from 'rn-fetch-blob';
+import LinearGradient from 'react-native-linear-gradient';
 
 const HOST = 'https://rena-chat.herokuapp.com';
 
@@ -457,19 +458,29 @@ export class ProfileScreen extends Component {
                         <View style={styles.bodyContainer}>
                             <View style={styles.bodyTopBar}>
 
-                                <TouchableOpacity
-                                    style={styles.bodyTopBarFriendsButton}
-                                    onPress={this.changeBodyOption.bind(this, 'friends')}
-                                >
-                                    <Text style={styles.bodyTopBarFriendsButtonText}>Friends</Text>
-                                </TouchableOpacity>
+                                <LinearGradient
+                                    start={{ x: 0, y: .7 }} end={{ x: 0, y: 1.0 }}
+                                    colors={['white', 'white']}
+                                    style={styles.bodyTopBarPostsButton}>
+                                    <TouchableOpacity
+                                        style={styles.bodyTopBarFriendsButton}
+                                        onPress={this.changeBodyOption.bind(this, 'friends')}
+                                    >
+                                        <Text style={styles.bodyTopBarFriendsButtonText}>Friends</Text>
+                                    </TouchableOpacity>
+                                </LinearGradient>
 
-                                <TouchableOpacity
-                                    style={styles.bodyTopBarHotButton}
-                                    onPress={this.changeBodyOption.bind(this, 'chat')}
-                                >
-                                    <Text style={styles.bodyTopBarHotButtonText}>Chat</Text>
-                                </TouchableOpacity>
+                                <LinearGradient
+                                    start={{ x: 0, y: .7 }} end={{ x: 0, y: 1.0 }}
+                                    colors={['#E6E6E6', 'darkgrey']}
+                                    style={styles.bodyTopBarHotButton}>
+                                    <TouchableOpacity
+                                        style={styles.bodyTopBarHotButton}
+                                        onPress={this.changeBodyOption.bind(this, 'chat')}
+                                    >
+                                        <Text style={styles.bodyTopBarHotButtonText}>Chat</Text>
+                                    </TouchableOpacity>
+                                </LinearGradient>
 
                             </View>
 
@@ -533,19 +544,29 @@ export class ProfileScreen extends Component {
                         <View style={styles.bodyContainer}>
                             <View style={styles.bodyTopBar}>
 
-                                <TouchableOpacity
-                                    style={styles.bodyTopBarFriendsButton}
-                                    onPress={this.changeBodyOption.bind(this, 'friends')}
-                                >
-                                    <Text style={styles.bodyTopBarFriendsButtonText}>Friends</Text>
-                                </TouchableOpacity>
+                                <LinearGradient
+                                    start={{ x: 0, y: .7 }} end={{ x: 0, y: 1.0 }}
+                                    colors={['#E6E6E6', 'darkgrey']}
+                                    style={styles.bodyTopBarPostsButton}>
+                                    <TouchableOpacity
+                                        style={styles.bodyTopBarFriendsButton}
+                                        onPress={this.changeBodyOption.bind(this, 'friends')}
+                                    >
+                                        <Text style={styles.bodyTopBarFriendsButtonText}>Friends</Text>
+                                    </TouchableOpacity>
+                                </LinearGradient>
 
-                                <TouchableOpacity
-                                    style={styles.bodyTopBarHotButton}
-                                    onPress={this.changeBodyOption.bind(this, 'chat')}
-                                >
-                                    <Text style={styles.bodyTopBarHotButtonText}>Chat</Text>
-                                </TouchableOpacity>
+                                <LinearGradient
+                                    start={{ x: 0, y: .7 }} end={{ x: 0, y: 1.0 }}
+                                    colors={['white', 'white']}
+                                    style={styles.bodyTopBarHotButton}>
+                                    <TouchableOpacity
+                                        style={styles.bodyTopBarHotButton}
+                                        onPress={this.changeBodyOption.bind(this, 'chat')}
+                                    >
+                                        <Text style={styles.bodyTopBarHotButtonText}>Chat</Text>
+                                    </TouchableOpacity>
+                                </LinearGradient>
 
                             </View>
 

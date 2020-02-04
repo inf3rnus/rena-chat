@@ -656,19 +656,18 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     profileBannerPictureContainer: {
-        flex: 1,
+        flex: .85,
         aspectRatio: 1,
         borderRadius: 200,
         margin: '2%',
-        borderWidth: 2,
-        borderColor: 'grey',
+
         backgroundColor: 'white'
     },
     profileBannerPicture: {
-        flex: 1,
         aspectRatio: 1,
         borderRadius: 200,
-
+        borderWidth: 1.5,
+        borderColor: 'grey',
     },
     profileBannerUploadPhotoText: {
     },
@@ -811,8 +810,6 @@ const styles = StyleSheet.create({
         aspectRatio: 1,
         borderRadius: 200,
         margin: '2%',
-        borderWidth: 2,
-        borderColor: 'grey',
         backgroundColor: 'white'
     },
     postPicture: {

@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
 import { ActivityIndicator, Alert, AsyncStorage, FlatList, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View, Button, Platform } from 'react-native';
 import { connect } from 'react-redux';
-import { getHttp, getFriends, getPendingFriends, postHttp, postRequestFriend, postConfirmFriend, postRemoveFriend, postSetProfileBio, postSetProfilePicture, postRemovePendingFriend, setFriendPictureLocalPath, setPendingFriendPictureLocalPath, setProfilePictureLocalPath } from './reducer';
+import { getHttp, getFriends, getPendingFriends, getSearchGlobalUsers, postHttp, postRequestFriend, postConfirmFriend, postRemoveFriend, postSetProfileBio, postSetProfilePicture, postRemovePendingFriend, setFriendPictureLocalPath, setPendingFriendPictureLocalPath, setProfilePictureLocalPath } from './reducer';
 import ImagePicker from 'react-native-image-picker';
 import { TextInput } from 'react-native-gesture-handler';
 import RNFetchBlob from 'rn-fetch-blob';
 import LinearGradient from 'react-native-linear-gradient';
-
-const HOST = 'https://rena-chat.herokuapp.com';
+import SearchableDropdown from 'react-native-searchable-dropdown';
 
 export class ProfileScreen extends Component {
 
@@ -328,22 +327,73 @@ export class ProfileScreen extends Component {
             />
         );
     }
+
+    searching = false;
+    username = '';
+    searchUsers() {
+        console.log('[searchUsers] - Current value: ' + this.searching);
+        if (this.searching === true && this.username !== '') {
+            console.log('[searchUsers] - Returned from search...');
+            return;
+        }
+        this.searching = true;
+        const headers = new Headers({
+            'Content-Type': 'application/json',
+            'Authorization': 'JWT ' + this.props.jwt_token
+        });
+        setTimeout(async () => {
+            // In the event the user cancels the action while the timeout is ticking down, this prevents an unneccesary call.
+            if (this.searching === true && this.username !== '') {
+                await this.props.getSearchGlobalUsers('/api/v1/users/search_global_users?username=' + this.username, headers);
+            }
+            // After a search is conducted, focus needs to be placed back on the searchbar to show the rendered results.
+            // Should be replaced with a TextInput that's divorced from its FlatList.
+            this.ref.focus();
+            this.searching = false
+        }, 750);
+
+    }
+    ref;
     renderListHeader(shouldRenderFriendBar) {
         return (
             <View style={{ flex: 1, alignSelf: 'stretch', marginBottom: 10 }}>
                 {
                     shouldRenderFriendBar === true ?
-                        <View style={styles.addFriendBar}>
-                            <TextInput
-                                style={styles.addFriendBarTextField}
-                                onChangeText={(text) => this.state.request_friend_text = text}
-                                placeholder='Request friend'
-                                placeholderTextColor='grey'
-                            />
-                            <TouchableOpacity style={styles.addFriendBarButton} onPress={() => { this.requestFriend(this.state.request_friend_text) }}>
-                                <Text style={styles.addFriendBarText}>Add</Text>
-                            </TouchableOpacity>
-                        </View>
+                        <SearchableDropdown
+                            onItemSelect={(item) => {
+                                // Add friend option here...
+                                this.requestFriend(item.name);
+                            }}
+                            onRemoveItem={(item, index) => {
+                            }}
+                            itemStyle={{
+                                padding: 15,
+                                marginHorizontal: 10,
+                                marginTop: 5,
+                                backgroundColor: 'lightgrey',
+                                borderRadius: 8
+                            }}
+                            items={this.props.searchedUsers}
+                            resetValue={false}
+                            containerStyle={{ marginBottom: 10 }}
+                            textInputProps={
+                                {
+                                    ref: (ref) => this.ref = ref,
+                                    placeholder: "Request friend",
+                                    placeholderTextColor: 'black',
+                                    underlineColorAndroid: "transparent",
+                                    style: styles.addFriendBarTextField,
+                                    onTextChange: (text) => { this.username = text; this.searchUsers() },
+                                    // onFocus: () => { this.setState({ isSearchingFriends: true }) },
+                                    onBlur: () => { this.searching = false; ; console.log('RESTTING SEARCH, SEARCH IS'); }
+                                }
+                            }
+                            listProps={
+                                {
+                                    nestedScrollEnabled: false,
+                                }
+                            }
+                        />
                         :
                         null
                 }
@@ -390,6 +440,7 @@ export class ProfileScreen extends Component {
         );
     }
 
+
     renderBioField(isEditingBio) {
         if (isEditingBio) {
             return (
@@ -431,85 +482,83 @@ export class ProfileScreen extends Component {
             return (
                 <View style={styles.container}>
                     {this.renderActivityIndicator()}
-                    <View style={styles.profileContainer}>
-                        <View style={styles.profileBanner}>
+                    <View style={styles.profileBanner}>
 
-                            <View style={styles.profileBannerPictureGroupContainer}>
-                                <View style={styles.profileBannerPictureContainer}>
-                                    {this.props.profile.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + this.props.profile.profile_picture_local_path : this.props.profile.profile_picture_local_path }} /> : null}
-                                </View>
-                                <TouchableOpacity onPress={this.setProfilePicture}>
-                                    <Text style={styles.profileBannerUploadPhotoText}>Upload photo</Text>
+                        <View style={styles.profileBannerPictureGroupContainer}>
+                            <View style={styles.profileBannerPictureContainer}>
+                                {this.props.profile.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + this.props.profile.profile_picture_local_path : this.props.profile.profile_picture_local_path }} /> : null}
+                            </View>
+                            <TouchableOpacity onPress={this.setProfilePicture}>
+                                <Text style={styles.profileBannerUploadPhotoText}>Upload photo</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.profileBannerBodyContainer}>
+
+                            <View style={styles.profileBannerBodyNameContainer}>
+                                <Text style={styles.profileBannerBodyName}>{this.props.profile.username}</Text>
+                            </View>
+
+                            {this.renderBioField(this.state.isEditingBio)}
+
+                        </View>
+
+                    </View>
+
+                    <View style={styles.bodyContainer}>
+                        <View style={styles.bodyTopBar}>
+
+                            <LinearGradient
+                                start={{ x: 0, y: .7 }} end={{ x: 0, y: 1.0 }}
+                                colors={['white', 'white']}
+                                style={styles.bodyTopBarPostsButton}>
+                                <TouchableOpacity
+                                    style={styles.bodyTopBarFriendsButton}
+                                    onPress={this.changeBodyOption.bind(this, 'friends')}
+                                >
+                                    <Text style={styles.bodyTopBarFriendsButtonText}>Friends</Text>
                                 </TouchableOpacity>
-                            </View>
+                            </LinearGradient>
 
-                            <View style={styles.profileBannerBodyContainer}>
-
-                                <View style={styles.profileBannerBodyNameContainer}>
-                                    <Text style={styles.profileBannerBodyName}>{this.props.profile.username}</Text>
-                                </View>
-
-                                {this.renderBioField(this.state.isEditingBio)}
-
-                            </View>
+                            <LinearGradient
+                                start={{ x: 0, y: .7 }} end={{ x: 0, y: 1.0 }}
+                                colors={['#E6E6E6', 'darkgrey']}
+                                style={styles.bodyTopBarHotButton}>
+                                <TouchableOpacity
+                                    style={styles.bodyTopBarHotButton}
+                                    onPress={this.changeBodyOption.bind(this, 'chat')}
+                                >
+                                    <Text style={styles.bodyTopBarHotButtonText}>Chat</Text>
+                                </TouchableOpacity>
+                            </LinearGradient>
 
                         </View>
 
-                        <View style={styles.bodyContainer}>
-                            <View style={styles.bodyTopBar}>
-
-                                <LinearGradient
-                                    start={{ x: 0, y: .7 }} end={{ x: 0, y: 1.0 }}
-                                    colors={['white', 'white']}
-                                    style={styles.bodyTopBarPostsButton}>
-                                    <TouchableOpacity
-                                        style={styles.bodyTopBarFriendsButton}
-                                        onPress={this.changeBodyOption.bind(this, 'friends')}
-                                    >
-                                        <Text style={styles.bodyTopBarFriendsButtonText}>Friends</Text>
-                                    </TouchableOpacity>
-                                </LinearGradient>
-
-                                <LinearGradient
-                                    start={{ x: 0, y: .7 }} end={{ x: 0, y: 1.0 }}
-                                    colors={['#E6E6E6', 'darkgrey']}
-                                    style={styles.bodyTopBarHotButton}>
-                                    <TouchableOpacity
-                                        style={styles.bodyTopBarHotButton}
-                                        onPress={this.changeBodyOption.bind(this, 'chat')}
-                                    >
-                                        <Text style={styles.bodyTopBarHotButtonText}>Chat</Text>
-                                    </TouchableOpacity>
-                                </LinearGradient>
-
-                            </View>
-
-                            <FlatList
-                                style={styles.postsContainer}
-                                data={this.props.friends}
-                                renderItem={({ item, index, separators }) => (
-                                    <View style={styles.postContentContainer}>
-                                        <View style={styles.postPictureGroupContainer}>
-                                            <View style={styles.postPictureContainer}>
-                                                {item.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture_local_path : item.profile_picture_local_path }} /> : null}
-                                            </View>
-                                            <Text>{item.username}</Text>
+                        <FlatList
+                            style={styles.postsContainer}
+                            data={this.props.friends}
+                            renderItem={({ item, index, separators }) => (
+                                <View style={styles.postContentContainer}>
+                                    <View style={styles.postPictureGroupContainer}>
+                                        <View style={styles.postPictureContainer}>
+                                            {item.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture_local_path : item.profile_picture_local_path }} /> : null}
                                         </View>
-                                        <View style={{ flex: 1.5, marginRight: '4%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
-                                            <View style={{ flex: 1, alignItems: 'center' }}>
-                                                <Text style={{ textAlign: 'center' }}>{item.bio}</Text>
-                                            </View>
-                                            <TouchableOpacity onPress={this.removeFriend.bind(this, item.username)} style={{ margin: '1%', padding: '3%', borderRadius: 3, backgroundColor: 'black' }}>
-                                                <Text style={{ fontSize: 12, color: 'white' }}>Remove</Text>
-                                            </TouchableOpacity>
-                                        </View>
+                                        <Text>{item.username}</Text>
                                     </View>
-                                )}
-                                ItemSeparatorComponent={this.renderSeparatorComponent}
-                                ListHeaderComponent={this.renderListHeader.bind(this, true)}
-                                keyExtractor={item => item.username}
-                            />
-                        </View>
+                                    <View style={{ flex: 1.5, marginRight: '4%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
+                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                            <Text style={{ textAlign: 'center' }}>{item.bio}</Text>
+                                        </View>
+                                        <TouchableOpacity onPress={this.removeFriend.bind(this, item.username)} style={{ margin: '1%', padding: '3%', borderRadius: 3, backgroundColor: 'black' }}>
+                                            <Text style={{ fontSize: 12, color: 'white' }}>Remove</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            )}
+                            ItemSeparatorComponent={this.renderSeparatorComponent}
+                            ListHeaderComponent={this.renderListHeader.bind(this, true)}
+                            keyExtractor={item => item.username}
+                        />
                     </View>
                 </View>
             );
@@ -613,6 +662,7 @@ const mapStateToProps = state => {
     let profile = state.profile;
     let friends = state.friends;
     let pending_friends = state.pending_friends;
+    let searchedUsers = state.searchedUsers;
 
     return {
         friends: friends,
@@ -620,7 +670,8 @@ const mapStateToProps = state => {
         loading: loading,
         jwt_token: jwt_token,
         profile: profile,
-        response: response
+        response: response,
+        searchedUsers: searchedUsers
     };
 };
 
@@ -628,6 +679,7 @@ const mapDispatchToProps = {
     getHttp,
     getFriends,
     getPendingFriends,
+    getSearchGlobalUsers,
 
     postHttp,
     postConfirmFriend,

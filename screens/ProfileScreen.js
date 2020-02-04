@@ -774,6 +774,8 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         marginTop: '7%',
         backgroundColor: 'white',
+        borderTopRightRadius: 15,
+        borderTopLeftRadius: 15
     },
     bodyTopBar: {
         height: '10%',

@@ -360,19 +360,21 @@ export class ProfileScreen extends Component {
                 {
                     shouldRenderFriendBar === true ?
                         <View>
-                            <View style={{ flexDirection: 'row' }}>
+                            <View style={{ flexDirection: 'row', borderWidth: 1,
+                                borderRadius: 5,
+                                marginBottom: 10,
+                            }}>
                                 <TextInput
                                     style={{
                                         flex: 1,
-                                        marginBottom: 10,
-                                        borderWidth: 1,
-                                        borderRadius: 5,
-                                        height: 35
+                                        top: 2,
+                                        height: 35,
                                     }}
                                     placeholder='Search for friends'
                                     placeholderTextColor='grey'
                                     onChangeText={(text) => { this.username = text; this.searchUsers() }}
                                 />
+                                <ActivityIndicator style={{marginRight: '3%'}} animating={this.props.userSearchIsLoading} />
                             </View>
                             {
                                 this.props.searchedUsers.length >= 1 ?
@@ -676,6 +678,7 @@ const mapStateToProps = state => {
     let friends = state.friends;
     let pending_friends = state.pending_friends;
     let searchedUsers = state.searchedUsers;
+    let userSearchIsLoading = state.userSearchIsLoading;
 
     return {
         friends: friends,
@@ -684,7 +687,8 @@ const mapStateToProps = state => {
         jwt_token: jwt_token,
         profile: profile,
         response: response,
-        searchedUsers: searchedUsers
+        searchedUsers: searchedUsers,
+        userSearchIsLoading: userSearchIsLoading
     };
 };
 

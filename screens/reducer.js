@@ -187,7 +187,7 @@ export default function reducer(state = { baseURL: 'https://rena-chat.herokuapp.
         case GET_SEARCH_GLOBAL_USERS:
             return {
                 ...state,
-                loading: true,
+                userSearchIsLoading: true,
             };
         case GET_SEARCH_GLOBAL_USERS_SUCCESS:
             // Friends object contains a pk property that needs to be converted to 'id'
@@ -199,12 +199,12 @@ export default function reducer(state = { baseURL: 'https://rena-chat.herokuapp.
                 ...state,
                 response: action.payload,
                 searchedUsers: action.payload.data,
-                loading: false,
+                userSearchIsLoading: false,
             }
         case GET_SEARCH_GLOBAL_USERS_FAIL:
             return {
                 ...state,
-                loading: false,
+                userSearchIsLoading: false,
                 response: {
                     ...action.error,
                     // Middleware embeds status code on failure inside of the message property string.

@@ -7,6 +7,7 @@ import { TextInput } from 'react-native-gesture-handler';
 import RNFetchBlob from 'rn-fetch-blob';
 import LinearGradient from 'react-native-linear-gradient';
 import SearchableDropdown from 'react-native-searchable-dropdown';
+import { Svg, Polygon } from 'react-native-svg';
 
 export class ProfileScreen extends Component {
 
@@ -403,10 +404,19 @@ export class ProfileScreen extends Component {
                             {
                                 this.props.searchedUsers.length && this.state.isSearching === true >= 1 ?
                                     <View>
-                                        <TouchableOpacity
-                                            onPress={this.changeBodyOption.bind(this, 'friends')}
-                                        ><Text style={{ alignSelf: 'center', textAlign: 'center', width: '12%', borderWidth: 1, borderRadius: 3, padding: 4, color: 'white', backgroundColor: 'black' }}>Back</Text></TouchableOpacity>
-                                        <Text style={{ fontSize: 18, marginLeft: '1%', fontWeight: 'bold', marginBottom: 10 }}>Search results...</Text>
+                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                            <Text style={{ fontSize: 18, marginLeft: '1%', fontWeight: 'bold', marginBottom: 10 }}>Search results...</Text>
+                                            <TouchableOpacity onPress={this.changeBodyOption.bind(this, 'friends')}>
+                                                <Svg style={{marginRight: 20}} height="20" width="20">
+                                                    <Polygon
+                                                        points="0,0 10,10 20,0"
+                                                        fill="black"
+                                                        stroke="black"
+                                                        strokeWidth="1"
+                                                    />
+                                                </Svg>
+                                            </TouchableOpacity>
+                                        </View>
 
                                         <FlatList
                                             style={{ marginBottom: 10, }}
@@ -705,7 +715,7 @@ export class ProfileScreen extends Component {
                     backgroundColor: 'lightgrey',
 
                 }}>
-                    <View style={styles.bodyContainer}>
+                    <View style={{ ...styles.bodyContainer, marginTop: '2%' }}>
                         <View style={styles.bodyTopBar}>
 
                             <LinearGradient

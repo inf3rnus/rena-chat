@@ -54,7 +54,7 @@ export const POST = 'POST';
 export const POST_SUCCESS = 'POST_SUCCESS';
 export const POST_FAIL = 'POST_FAIL';
 
-export default function reducer(state = { baseURL: 'https://rena-chat.herokuapp.com', messages: [], profile: {}, pending_friends: [], searchedUsers: [] }, action) {
+export default function reducer(state = { baseURL: 'https://rena-chat.herokuapp.com', messages: [], profile: {}, pending_friends: [], userSearchIsLoading: false, searchedUsers: [] }, action) {
     switch (action.type) {
         case GET_FRIENDS:
             return {

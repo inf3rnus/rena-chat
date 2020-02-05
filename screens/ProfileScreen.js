@@ -19,6 +19,7 @@ export class ProfileScreen extends Component {
             confirm_friend_text: null,
 
             isEditingBio: false,
+            shouldRenderFriendBar: true,
         }
         this.changeBodyOption = this.changeBodyOption.bind(this);
         this.getProfile = this.getProfile.bind(this);
@@ -313,9 +314,22 @@ export class ProfileScreen extends Component {
     }
 
     changeBodyOption(option) {
-        this.setState(() => ({
-            topBarOption: option
-        }))
+        switch (option) {
+            case 'friends': {
+                this.setState({
+                    topBarOption: option,
+                    shouldRenderFriendBar: true
+                });
+                break;
+            }
+            case 'chat': {
+                this.setState({
+                    topBarOption: option,
+                    shouldRenderFriendBar: false
+                });
+                break;
+            }
+        }
     }
 
     renderSeparatorComponent() {
@@ -346,21 +360,19 @@ export class ProfileScreen extends Component {
             if (this.searching === true && this.username !== '') {
                 await this.props.getSearchGlobalUsers('/api/v1/users/search_global_users?username=' + this.username, headers);
             }
-            // After a search is conducted, focus needs to be placed back on the searchbar to show the rendered results.
-            // Should be replaced with a TextInput that's divorced from its FlatList.
-            //this.ref.focus();
             this.searching = false
         }, 750);
 
     }
-    ref;
-    renderListHeader(shouldRenderFriendBar) {
+
+    renderListHeader() {
         return (
             <View style={{ flex: 1, alignSelf: 'stretch', marginBottom: 10 }}>
                 {
-                    shouldRenderFriendBar === true ?
+                    this.state.shouldRenderFriendBar === true ?
                         <View>
-                            <View style={{ flexDirection: 'row', borderWidth: 1,
+                            <View style={{
+                                flexDirection: 'row', borderWidth: 1,
                                 borderRadius: 5,
                                 marginBottom: 10,
                             }}>
@@ -372,9 +384,10 @@ export class ProfileScreen extends Component {
                                     }}
                                     placeholder='Search for friends'
                                     placeholderTextColor='grey'
+                                    blurOnSubmit={false}
                                     onChangeText={(text) => { this.username = text; this.searchUsers() }}
                                 />
-                                <ActivityIndicator style={{marginRight: '3%'}} animating={this.props.userSearchIsLoading} />
+                                <ActivityIndicator style={{ marginRight: '3%' }} animating={this.props.userSearchIsLoading} />
                             </View>
                             {
                                 this.props.searchedUsers.length >= 1 ?
@@ -571,7 +584,7 @@ export class ProfileScreen extends Component {
                                 </View>
                             )}
                             ItemSeparatorComponent={this.renderSeparatorComponent}
-                            ListHeaderComponent={this.renderListHeader.bind(this, true)}
+                            ListHeaderComponent={this.renderListHeader}
                             keyExtractor={item => item.username}
                         />
                     </View>
@@ -658,7 +671,7 @@ export class ProfileScreen extends Component {
                                     </View>
                                 )}
                                 ItemSeparatorComponent={this.renderSeparatorComponent}
-                                ListHeaderComponent={this.renderListHeader.bind(this, false)}
+                                ListHeaderComponent={this.renderListHeader}
                                 keyExtractor={item => item.username}
                             />
                         </View>

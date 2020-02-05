@@ -397,7 +397,7 @@ export class ProfileScreen extends Component {
                                     placeholder='Search for friends'
                                     placeholderTextColor='grey'
                                     onFocus={this.changeBodyOption.bind(this, 'search')}
-                                    onChangeText={(text) => { this.username = text; this.searchUsers() }}
+                                    onChangeText={(text) => { this.username = text.toLowerCase(); this.searchUsers() }}
                                 />
                                 <ActivityIndicator style={{ marginRight: '3%' }} animating={this.props.userSearchIsLoading} />
                             </View>
@@ -717,7 +717,7 @@ export class ProfileScreen extends Component {
                     backgroundColor: 'lightgrey',
 
                 }}>
-                    <View style={{ ...styles.bodyContainer, marginTop: '2%', flex: 1 }}>
+                    <View style={{ ...styles.bodyContainer, marginTop: '1%', flex: 1 }}>
                         <View style={styles.bodyTopBar}>
 
                             <LinearGradient
@@ -907,7 +907,7 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 15,
     },
     bodyTopBar: {
-        height: 50,
+        height: 40,
         flexDirection: 'row',
         backgroundColor: '#E6E6E6',
         borderTopLeftRadius: 15,

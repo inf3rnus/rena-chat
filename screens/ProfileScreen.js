@@ -348,7 +348,7 @@ export class ProfileScreen extends Component {
             }
             // After a search is conducted, focus needs to be placed back on the searchbar to show the rendered results.
             // Should be replaced with a TextInput that's divorced from its FlatList.
-            this.ref.focus();
+            //this.ref.focus();
             this.searching = false
         }, 750);
 
@@ -359,41 +359,54 @@ export class ProfileScreen extends Component {
             <View style={{ flex: 1, alignSelf: 'stretch', marginBottom: 10 }}>
                 {
                     shouldRenderFriendBar === true ?
-                        <SearchableDropdown
-                            onItemSelect={(item) => {
-                                // Add friend option here...
-                                this.requestFriend(item.name);
-                            }}
-                            onRemoveItem={(item, index) => {
-                            }}
-                            itemStyle={{
-                                padding: 15,
-                                marginHorizontal: 10,
-                                marginTop: 5,
-                                backgroundColor: 'lightgrey',
-                                borderRadius: 8
-                            }}
-                            items={this.props.searchedUsers}
-                            resetValue={false}
-                            containerStyle={{ marginBottom: 10 }}
-                            textInputProps={
-                                {
-                                    ref: (ref) => this.ref = ref,
-                                    placeholder: "Request friend",
-                                    placeholderTextColor: 'black',
-                                    underlineColorAndroid: "transparent",
-                                    style: styles.addFriendBarTextField,
-                                    onTextChange: (text) => { this.username = text; this.searchUsers() },
-                                    // onFocus: () => { this.setState({ isSearchingFriends: true }) },
-                                    onBlur: () => { this.searching = false; ; console.log('RESTTING SEARCH, SEARCH IS'); }
-                                }
+                        <View>
+                            <View style={{ flexDirection: 'row' }}>
+                                <TextInput
+                                    style={{
+                                        flex: 1,
+                                        marginBottom: 10,
+                                        borderWidth: 1,
+                                        borderRadius: 5,
+                                        height: 35
+                                    }}
+                                    placeholder='Search for friends'
+                                    placeholderTextColor='grey'
+                                    onChangeText={(text) => { this.username = text; this.searchUsers() }}
+                                />
+                            </View>
+                            {
+                                this.props.searchedUsers.length >= 1 ?
+                                    <Text style={{ fontSize: 18, marginLeft: '1%', fontWeight: 'bold', marginBottom: 10 }}>People</Text>
+                                    :
+                                    null
                             }
-                            listProps={
-                                {
-                                    nestedScrollEnabled: false,
-                                }
-                            }
-                        />
+                            <FlatList
+                                style={{ marginBottom: 10 }}
+                                data={this.props.searchedUsers.slice(0, 5)}
+                                renderItem={({ item, index, separators }) => (
+                                    <View style={styles.postContentContainer}>
+                                        <View style={styles.postPictureGroupContainer}>
+                                            <View style={styles.postPictureContainer}>
+                                                {item.profile_picture !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? item.profile_picture : item.profile_picture }} /> : null}
+                                            </View>
+                                            <Text>{item.username}</Text>
+                                        </View>
+                                        <View style={{ flex: 1.5, marginRight: '4%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
+                                            <View style={{ flex: 1, alignItems: 'center' }}>
+                                                <Text style={{ textAlign: 'center' }}>{item.bio}</Text>
+                                            </View>
+                                            <TouchableOpacity onPress={this.requestFriend.bind(this, item.username)} style={{ margin: '1%', padding: '3%', borderRadius: 3, backgroundColor: 'black' }}>
+                                                <Text style={{ fontSize: 12, color: 'white' }}>Request</Text>
+                                            </TouchableOpacity>
+
+                                        </View>
+                                    </View>
+                                )}
+                                ItemSeparatorComponent={this.renderSeparatorComponent}
+                                keyExtractor={item => item.username}
+                            />
+                        </View>
+
                         :
                         null
                 }

@@ -195,7 +195,6 @@ export default function reducer(state = { baseURL: 'https://rena-chat.herokuapp.
                 user.id = user.pk;
                 user.name = user.username;
             });
-            console.log('USERS ARE: ' + JSON.stringify(action.payload.data));
             return {
                 ...state,
                 response: action.payload,

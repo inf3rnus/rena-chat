@@ -19,6 +19,7 @@ export class ProfileScreen extends Component {
             confirm_friend_text: null,
 
             isEditingBio: false,
+            isSearching: false,
             shouldRenderFriendBar: true,
         }
         this.changeBodyOption = this.changeBodyOption.bind(this);
@@ -318,14 +319,23 @@ export class ProfileScreen extends Component {
             case 'friends': {
                 this.setState({
                     topBarOption: option,
-                    shouldRenderFriendBar: true
+                    shouldRenderFriendBar: true,
+                    isSearching: false,
                 });
                 break;
             }
             case 'chat': {
                 this.setState({
                     topBarOption: option,
-                    shouldRenderFriendBar: false
+                    shouldRenderFriendBar: false,
+                });
+                break;
+            }
+            case 'search': {
+                this.setState({
+                    topBarOption: option,
+                    shouldRenderFriendBar: true,
+                    isSearching: true,
                 });
                 break;
             }
@@ -382,44 +392,51 @@ export class ProfileScreen extends Component {
                                         top: 2,
                                         height: 35,
                                     }}
+                                    autoFocus={this.state.isSearching ? true : false}
                                     placeholder='Search for friends'
                                     placeholderTextColor='grey'
-                                    blurOnSubmit={false}
+                                    onFocus={this.changeBodyOption.bind(this, 'search')}
                                     onChangeText={(text) => { this.username = text; this.searchUsers() }}
                                 />
                                 <ActivityIndicator style={{ marginRight: '3%' }} animating={this.props.userSearchIsLoading} />
                             </View>
                             {
-                                this.props.searchedUsers.length >= 1 ?
-                                    <Text style={{ fontSize: 18, marginLeft: '1%', fontWeight: 'bold', marginBottom: 10 }}>People</Text>
+                                this.props.searchedUsers.length && this.state.isSearching === true >= 1 ?
+                                    <View>
+                                        <TouchableOpacity
+                                            onPress={this.changeBodyOption.bind(this, 'friends')}
+                                        ><Text style={{ alignSelf: 'center', textAlign: 'center', width: '12%', borderWidth: 1, borderRadius: 3, padding: 4, color: 'white', backgroundColor: 'black' }}>Back</Text></TouchableOpacity>
+                                        <Text style={{ fontSize: 18, marginLeft: '1%', fontWeight: 'bold', marginBottom: 10 }}>Search results...</Text>
+
+                                        <FlatList
+                                            style={{ marginBottom: 10, }}
+                                            data={this.props.searchedUsers.slice(0, 5)}
+                                            renderItem={({ item, index, separators }) => (
+                                                <View style={styles.postContentContainer}>
+                                                    <View style={styles.postPictureGroupContainer}>
+                                                        <View style={styles.postPictureContainer}>
+                                                            {item.profile_picture !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? item.profile_picture : item.profile_picture }} /> : null}
+                                                        </View>
+                                                        <Text>{item.username}</Text>
+                                                    </View>
+                                                    <View style={{ flex: 1.5, marginRight: '4%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
+                                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                                            <Text style={{ textAlign: 'center' }}>{item.bio}</Text>
+                                                        </View>
+                                                        <TouchableOpacity onPress={this.requestFriend.bind(this, item.username)} style={{ margin: '1%', padding: '3%', borderRadius: 3, backgroundColor: 'black' }}>
+                                                            <Text style={{ fontSize: 12, color: 'white', zIndex: 200 }}>Request</Text>
+                                                        </TouchableOpacity>
+
+                                                    </View>
+                                                </View>
+                                            )}
+                                            ItemSeparatorComponent={this.renderSeparatorComponent}
+                                            keyExtractor={item => item.username}
+                                        />
+                                    </View>
                                     :
                                     null
                             }
-                            <FlatList
-                                style={{ marginBottom: 10 }}
-                                data={this.props.searchedUsers.slice(0, 5)}
-                                renderItem={({ item, index, separators }) => (
-                                    <View style={styles.postContentContainer}>
-                                        <View style={styles.postPictureGroupContainer}>
-                                            <View style={styles.postPictureContainer}>
-                                                {item.profile_picture !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? item.profile_picture : item.profile_picture }} /> : null}
-                                            </View>
-                                            <Text>{item.username}</Text>
-                                        </View>
-                                        <View style={{ flex: 1.5, marginRight: '4%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
-                                            <View style={{ flex: 1, alignItems: 'center' }}>
-                                                <Text style={{ textAlign: 'center' }}>{item.bio}</Text>
-                                            </View>
-                                            <TouchableOpacity onPress={this.requestFriend.bind(this, item.username)} style={{ margin: '1%', padding: '3%', borderRadius: 3, backgroundColor: 'black' }}>
-                                                <Text style={{ fontSize: 12, color: 'white' }}>Request</Text>
-                                            </TouchableOpacity>
-
-                                        </View>
-                                    </View>
-                                )}
-                                ItemSeparatorComponent={this.renderSeparatorComponent}
-                                keyExtractor={item => item.username}
-                            />
                         </View>
 
                         :
@@ -675,6 +692,74 @@ export class ProfileScreen extends Component {
                                 keyExtractor={item => item.username}
                             />
                         </View>
+                    </View>
+                </View>
+            );
+        else if (this.state.topBarOption === 'search')
+            return (
+                <View style={{
+                    flex: 1,
+                    justifyContent: 'flex-start',
+                    padding: 25,
+                    flexDirection: 'column',
+                    backgroundColor: 'lightgrey',
+
+                }}>
+                    <View style={styles.bodyContainer}>
+                        <View style={styles.bodyTopBar}>
+
+                            <LinearGradient
+                                start={{ x: 0, y: .7 }} end={{ x: 0, y: 1.0 }}
+                                colors={['white', 'white']}
+                                style={styles.bodyTopBarPostsButton}>
+                                <TouchableOpacity
+                                    style={styles.bodyTopBarFriendsButton}
+                                    onPress={this.changeBodyOption.bind(this, 'friends')}
+                                >
+                                    <Text style={styles.bodyTopBarFriendsButtonText}>Friends</Text>
+                                </TouchableOpacity>
+                            </LinearGradient>
+
+                            <LinearGradient
+                                start={{ x: 0, y: .7 }} end={{ x: 0, y: 1.0 }}
+                                colors={['#E6E6E6', 'darkgrey']}
+                                style={styles.bodyTopBarHotButton}>
+                                <TouchableOpacity
+                                    style={styles.bodyTopBarHotButton}
+                                    onPress={this.changeBodyOption.bind(this, 'chat')}
+                                >
+                                    <Text style={styles.bodyTopBarHotButtonText}>Chat</Text>
+                                </TouchableOpacity>
+                            </LinearGradient>
+
+                        </View>
+
+                        <FlatList
+                            keyboardShouldPersistTaps='always'
+                            style={styles.postsContainer}
+                            data={this.props.friends}
+                            renderItem={({ item, index, separators }) => (
+                                <View style={styles.postContentContainer}>
+                                    <View style={styles.postPictureGroupContainer}>
+                                        <View style={styles.postPictureContainer}>
+                                            {item.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture_local_path : item.profile_picture_local_path }} /> : null}
+                                        </View>
+                                        <Text>{item.username}</Text>
+                                    </View>
+                                    <View style={{ flex: 1.5, marginRight: '4%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
+                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                            <Text style={{ textAlign: 'center' }}>{item.bio}</Text>
+                                        </View>
+                                        <TouchableOpacity onPress={this.removeFriend.bind(this, item.username)} style={{ margin: '1%', padding: '3%', borderRadius: 3, backgroundColor: 'black' }}>
+                                            <Text style={{ fontSize: 12, color: 'white' }}>Remove</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            )}
+                            ItemSeparatorComponent={this.renderSeparatorComponent}
+                            ListHeaderComponent={this.renderListHeader}
+                            keyExtractor={item => item.username}
+                        />
                     </View>
                 </View>
             );

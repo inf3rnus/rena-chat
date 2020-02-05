@@ -407,7 +407,7 @@ export class ProfileScreen extends Component {
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                                             <Text style={{ fontSize: 18, marginLeft: '1%', fontWeight: 'bold', marginBottom: 10 }}>Search results...</Text>
                                             <TouchableOpacity onPress={this.changeBodyOption.bind(this, 'friends')}>
-                                                <Svg style={{marginRight: 20}} height="20" width="20">
+                                                <Svg style={{ marginRight: '3%', bottom: 5 }} height="20" width="20">
                                                     <Polygon
                                                         points="0,0 10,10 20,0"
                                                         fill="black"
@@ -419,8 +419,9 @@ export class ProfileScreen extends Component {
                                         </View>
 
                                         <FlatList
+                                            listKey='globalFriendsList'
                                             style={{ marginBottom: 10, }}
-                                            data={this.props.searchedUsers.slice(0, 5)}
+                                            data={this.props.searchedUsers.slice(0, 3)}
                                             renderItem={({ item, index, separators }) => (
                                                 <View style={styles.postContentContainer}>
                                                     <View style={styles.postPictureGroupContainer}>
@@ -457,6 +458,7 @@ export class ProfileScreen extends Component {
                         <View>
                             <Text style={{ fontSize: 18, marginLeft: '1%', fontWeight: 'bold', marginBottom: 10 }}>Pending friends</Text>
                             <FlatList
+                                listKey='pendingFriendsList'
                                 style={{ marginBottom: 10 }}
                                 data={this.props.pending_friends}
                                 renderItem={({ item, index, separators }) => (
@@ -715,7 +717,7 @@ export class ProfileScreen extends Component {
                     backgroundColor: 'lightgrey',
 
                 }}>
-                    <View style={{ ...styles.bodyContainer, marginTop: '2%' }}>
+                    <View style={{ ...styles.bodyContainer, marginTop: '2%', flex: 1 }}>
                         <View style={styles.bodyTopBar}>
 
                             <LinearGradient
@@ -905,7 +907,7 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 15,
     },
     bodyTopBar: {
-        height: '10%',
+        height: 50,
         flexDirection: 'row',
         backgroundColor: '#E6E6E6',
         borderTopLeftRadius: 15,

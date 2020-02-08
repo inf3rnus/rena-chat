@@ -259,7 +259,7 @@ export class ProfileScreen extends Component {
         if (isEditingBio) {
             return (
                 <View style={styles.profileBannerBodyBioContainer}>
-                    <View style={{ height: '65%', justifyContent: 'center'}}>
+                    <View style={{ height: '65%', justifyContent: 'center' }}>
                         <TextInput style={{
                             textAlign: 'center',
                             fontSize: 16,
@@ -396,9 +396,7 @@ export class ProfileScreen extends Component {
     searching = false;
     username = '';
     searchUsers() {
-        console.log('[searchUsers] - Current value: ' + this.searching);
         if (this.searching === true && this.username !== '') {
-            console.log('[searchUsers] - Returned from search...');
             return;
         }
         this.searching = true;
@@ -441,6 +439,21 @@ export class ProfileScreen extends Component {
                                 />
                                 <ActivityIndicator style={{ marginRight: '3%' }} animating={this.props.userSearchIsLoading} />
                             </View>
+                            {
+                                this.username === '' && this.state.isSearching === true ?
+                                    <TouchableOpacity style={{ alignSelf: 'flex-end' }} onPress={this.changeBodyOption.bind(this, 'friends')}>
+                                        <Svg style={{ marginRight: '3%', bottom: 5 }} height="20" width="20">
+                                            <Polygon
+                                                points="0,0 10,10 20,0"
+                                                fill="black"
+                                                stroke="black"
+                                                strokeWidth="1"
+                                            />
+                                        </Svg>
+                                    </TouchableOpacity>
+                                    :
+                                    null
+                            }
                             {
                                 this.props.searchedUsers.length && this.state.isSearching === true >= 1 ?
                                     <View>

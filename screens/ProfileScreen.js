@@ -259,13 +259,15 @@ export class ProfileScreen extends Component {
         if (isEditingBio) {
             return (
                 <View style={styles.profileBannerBodyBioContainer}>
-                    <TextInput style={{
-                        textAlign: 'center',
-                        fontSize: 16,
-                        borderRadius: 7,
-                        backgroundColor: 'white'
-                        // The profile object found in the local state is set in getFriends after its entry in the redux store is updated.
-                    }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80} place>{this.props.profile.bio}</TextInput>
+                    <View style={{ height: '65%', justifyContent: 'center'}}>
+                        <TextInput style={{
+                            textAlign: 'center',
+                            fontSize: 16,
+                            borderRadius: 7,
+                            backgroundColor: 'white'
+                            // The profile object found in the local state is set in getFriends after its entry in the redux store is updated.
+                        }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80} place>{this.props.profile.bio}</TextInput>
+                    </View>
                     <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
                         <TouchableOpacity onPress={this.setProfileBio}>
                             <Text style={{ margin: '2%', fontWeight: 'bold' }}>Save</Text>
@@ -277,11 +279,12 @@ export class ProfileScreen extends Component {
         else {
             return (
                 <View style={styles.profileBannerBodyBioContainer}>
-                    <Text style={{
-                        textAlign: 'center',
-                        fontSize: 16,
-                        borderRadius: 7,
-                    }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.props.profile.bio}</Text>
+                    <View style={{ height: '65%', justifyContent: 'center' }}>
+                        <Text style={{
+                            textAlign: 'center',
+                            fontSize: 16,
+                        }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.props.profile.bio}</Text>
+                    </View>
                     <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
                         <TouchableOpacity onPress={this.setProfileBio}>
                             <Text style={{ margin: '2%' }}>edit</Text>

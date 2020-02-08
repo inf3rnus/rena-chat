@@ -44,6 +44,8 @@ export class ProfileScreen extends Component {
 
         await this.props.getHttp('/api/v1/users/get_current_profile', headers);
 
+        this.state.profile = this.props.profile;
+
         console.log('[getProfile] - Current user profile\'s details: ' + JSON.stringify(this.props.profile));
         console.log('[getProfile] - Picture SERVER PATH equal to: ' + this.props.profile.profile_picture);
 
@@ -232,9 +234,7 @@ export class ProfileScreen extends Component {
 
     async setProfileBio() {
         if (!this.state.isEditingBio) {
-            this.setState(() => ({
-                isEditingBio: true
-            }))
+            this.setState({ isEditingBio: true })
         }
         else if (this.state.isEditingBio) {
             let data = this.createFormData({ bio: this.state.profile.bio, username: this.props.profile.username });
@@ -252,6 +252,43 @@ export class ProfileScreen extends Component {
                 Alert.alert('Uh oh!', 'A network problem has occurred!');
             }
             this.setState(() => ({ isEditingBio: false }));
+        }
+    }
+
+    renderBioField(isEditingBio) {
+        if (isEditingBio) {
+            return (
+                <View style={styles.profileBannerBodyBioContainer}>
+                    <TextInput style={{
+                        textAlign: 'center',
+                        fontSize: 16,
+                        borderRadius: 7,
+                        backgroundColor: 'white'
+                        // The profile object found in the local state is set in getFriends after its entry in the redux store is updated.
+                    }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80} place>{this.props.profile.bio}</TextInput>
+                    <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
+                        <TouchableOpacity onPress={this.setProfileBio}>
+                            <Text style={{ margin: '2%', fontWeight: 'bold' }}>Save</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            );
+        }
+        else {
+            return (
+                <View style={styles.profileBannerBodyBioContainer}>
+                    <Text style={{
+                        textAlign: 'center',
+                        fontSize: 16,
+                        borderRadius: 7,
+                    }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.props.profile.bio}</Text>
+                    <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
+                        <TouchableOpacity onPress={this.setProfileBio}>
+                            <Text style={{ margin: '2%' }}>edit</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            );
         }
     }
 
@@ -495,43 +532,6 @@ export class ProfileScreen extends Component {
 
 
         );
-    }
-
-
-    renderBioField(isEditingBio) {
-        if (isEditingBio) {
-            return (
-                <View style={styles.profileBannerBodyBioContainer}>
-                    <TextInput style={{
-                        textAlign: 'center',
-                        fontSize: 16,
-                        borderRadius: 7,
-                        backgroundColor: 'white'
-                    }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.props.profile.bio}</TextInput>
-                    <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
-                        <TouchableOpacity onPress={this.setProfileBio}>
-                            <Text style={{ margin: '2%', fontWeight: 'bold' }}>Save</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            );
-        }
-        else {
-            return (
-                <View style={styles.profileBannerBodyBioContainer}>
-                    <Text style={{
-                        textAlign: 'center',
-                        fontSize: 16,
-                        borderRadius: 7,
-                    }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.props.profile.bio}</Text>
-                    <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
-                        <TouchableOpacity onPress={this.setProfileBio}>
-                            <Text style={{ margin: '2%' }}>edit</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            );
-        }
     }
 
     render() {

@@ -259,7 +259,7 @@ export class ProfileScreen extends Component {
         if (isEditingBio) {
             return (
                 <View style={styles.profileBannerBodyBioContainer}>
-                    <View style={{ height: '65%', justifyContent: 'center' }}>
+                    <View style={{ height: '65%', marginTop: '3%', justifyContent: 'center' }}>
                         <TextInput style={{
                             textAlign: 'center',
                             fontSize: 16,
@@ -279,7 +279,7 @@ export class ProfileScreen extends Component {
         else {
             return (
                 <View style={styles.profileBannerBodyBioContainer}>
-                    <View style={{ height: '65%', justifyContent: 'center' }}>
+                    <View style={{ height: '65%', marginTop: '3%', justifyContent: 'center'}}>
                         <Text style={{
                             textAlign: 'center',
                             fontSize: 16,

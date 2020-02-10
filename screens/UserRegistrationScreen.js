@@ -141,7 +141,6 @@ export class UserRegistration extends Component {
                                 placeholder="Password"
                                 placeholderTextColor='grey'
                                 onChangeText={(text) => this.state.password1 = text}
-                                onBlur={() => { console.log("[onBlur] Message Text: " + this.state.password1) }}
                                 maxLength={30}
                                 secureTextEntry={true}
                             />
@@ -150,7 +149,6 @@ export class UserRegistration extends Component {
                                 placeholder="Confirm password"
                                 placeholderTextColor='grey'
                                 onChangeText={(text) => this.state.password2 = text}
-                                onBlur={() => { console.log("[onBlur] Message Text: " + this.state.password2) }}
                                 maxLength={30}
                                 secureTextEntry={true}
                             />

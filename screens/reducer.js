@@ -59,7 +59,7 @@ const initialState = {
     messages: [],
     friends: [],
     profile: {
-        bio: '',
+        bio: null,
     },
     pending_friends: [],
     userSearchIsLoading: false,

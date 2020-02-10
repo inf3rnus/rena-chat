@@ -270,7 +270,7 @@ export class ProfileScreen extends Component {
                             borderRadius: 7,
                             backgroundColor: 'white'
                             // The profile object found in the local state is set in getFriends after its entry in the redux store is updated.
-                        }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80} place>{this.state.profile.bio !== '' ? this.state.profile.bio : ''}</TextInput>
+                        }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80} place>{this.props.profile.bio !== null ? this.state.profile.bio : ''}</TextInput>
                     </View>
                     <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
                         <TouchableOpacity onPress={this.setProfileBio}>
@@ -287,7 +287,7 @@ export class ProfileScreen extends Component {
                         <Text style={{
                             textAlign: 'center',
                             fontSize: 16,
-                        }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.state.profile.bio !== '' ? this.state.profile.bio : 'Edit your bio here!'}</Text>
+                        }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.props.profile.bio !== null ? this.state.profile.bio : 'Edit your bio here!'}</Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
                         <TouchableOpacity onPress={this.setProfileBio}>

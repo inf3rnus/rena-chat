@@ -214,6 +214,7 @@ var styles = StyleSheet.create({
         justifyContent: 'space-evenly',
     },
     textFields: {
+        height: 40,
         backgroundColor: 'white',
         borderColor: 'black',
         borderWidth: 2,

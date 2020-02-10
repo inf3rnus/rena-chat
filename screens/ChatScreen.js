@@ -1,13 +1,10 @@
 import React, { Component } from 'react';
-import { Alert, AsyncStorage, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, Text, TextInput, TouchableOpacity, View, Button, Platform } from 'react-native';
+import { ActivityIndicator, Alert, AsyncStorage, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, Text, TextInput, TouchableOpacity, View, Button, Platform } from 'react-native';
 import { connect } from 'react-redux';
 import { getPreviousMessages } from './reducer';
 import { GiftedChat } from 'react-native-gifted-chat';
 
-//const HOST = 'http://10.0.2.2:8000';
-const HOST = 'http://rena-chat.herokuapp.com';
-//const WS_HOST = 'ws://10.0.2.2:8000';
-const WS_HOST = 'ws://rena-chat.herokuapp.com';
+const WS_HOST = 'wss://rena-chat.herokuapp.com';
 const LIMIT = 10;
 
 export class ChatScreen extends Component {
@@ -18,7 +15,7 @@ export class ChatScreen extends Component {
             user: {
                 _id: this.props.profile.pk,
                 name: this.props.profile.username,
-                avatar: this.props.profile.profile_picture_server_path,
+                avatar: this.props.profile.profile_picture,
             },
             friend_user_id: this.props.navigation.state.params.friend_id,
             conversation_id: null,
@@ -29,6 +26,7 @@ export class ChatScreen extends Component {
         }
         this.setupWebsocket = this.setupWebsocket.bind(this);
         this.getPreviousMessages = this.getPreviousMessages.bind(this);
+        this.renderActivityIndicator = this.renderActivityIndicator.bind(this);
     }
 
     socket;
@@ -52,11 +50,10 @@ export class ChatScreen extends Component {
                 case 'start_chat':
                     console.log('[onmessage] - start_chat fired, data contents: ' + JSON.stringify(data));
                     this.state.conversation_id = data.conversation_id;
-                    this.getPreviousMessages(this.state.conversation_id);
+                    this.getPreviousMessages(data.conversation_id);
                     break;
                 default:
                     console.log('[onmessage] - receive_chat fired, data contents: ' + e.data);
-                    console.log('[onmessage] - Current user ID: ' + data.current_user_id + ' and ' + this.state.user._id);
                     console.log('[onmessage] - Type of the contents: ' + typeof data.message_contents);
                     if (data.current_user_id !== this.state.user._id) {
                         this.setState(previousState => ({
@@ -78,7 +75,7 @@ export class ChatScreen extends Component {
 
         console.log('[getPreviousMessages] - Offset is: ' + this.state.page_offset);
 
-        await this.props.getPreviousMessages(HOST + '/api/v1/chat/get_conversation_messages?limit=' + LIMIT + '&offset=' + this.state.page_offset + '&conversation_id=' + conversation_id, headers);
+        await this.props.getPreviousMessages('/api/v1/chat/get_conversation_messages?limit=' + LIMIT + '&offset=' + this.state.page_offset + '&conversation_id=' + conversation_id, headers);
         this.state.page_offset += 10;
 
         console.log('[getPreviousMessages] - JSON response is: ' + JSON.stringify(this.props.messages));
@@ -115,10 +112,29 @@ export class ChatScreen extends Component {
         this.socket.close();
     }
 
+    renderActivityIndicator() {
+        if (this.props.loading) {
+            return (
+                <ActivityIndicator
+                    style={{
+                        alignSelf: 'center',
+                        position: 'absolute',
+                        top: '40%',
+                        zIndex: 50
+                    }}
+                    color='blue'
+                    size='large'
+                />
+            );
+        }
+        else
+            return (null);
+    }
 
     render() {
         return (
             <View style={{ flex: 1 }}>
+                {this.renderActivityIndicator()}
                 <GiftedChat
                     style={{ flex: 1, alignSelf: 'stretch', height: 200 }}
                     messages={this.state.messages}

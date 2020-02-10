@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, AsyncStorage, Image, Keyboard, StyleSheet, Pe
 import { connect } from 'react-redux';
 import { postHttp } from './reducer';
 import { TextInput } from 'react-native-gesture-handler';
+import LinearGradient from 'react-native-linear-gradient';
 
 //const HOST = 'http://10.0.2.2:8000';
 const HOST = 'http://rena-chat.herokuapp.com';
@@ -86,7 +87,10 @@ export class UserLogin extends Component {
     render() {
         return (
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={styles.container}>
+                <LinearGradient
+                    start={{ x: 0.0, y: 0.25 }} end={{ x: 0.5, y: 1.0 }}
+                    colors={['white', 'grey']} 
+                    style={styles.container}>
                     {this.renderActivityIndicator()}
                     <View style={styles.formContainer}>
                         <View style={styles.textFieldContainer}>
@@ -123,12 +127,11 @@ export class UserLogin extends Component {
                     </View>
                     <View style={styles.appLogoContainer}>
                         <View style={styles.pinContainer}>
-                            <Image style={styles.pinLogo} source={null} />
+                            <Image style={styles.pinLogo} source={require('./images/rena-chat-logo-short.png')} />
                         </View>
                     </View>
-                </View>
+                </LinearGradient>
             </TouchableWithoutFeedback>
-
         );
     }
 }
@@ -156,7 +159,7 @@ var styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'column',
         alignItems: 'center',
-        backgroundColor: 'white',
+        backgroundColor: 'lightgrey',
         padding: 20
     },
     title: {
@@ -167,13 +170,14 @@ var styles = StyleSheet.create({
     formContainer: {
         flex: .7,
         width: '80%',
-        justifyContent: 'space-evenly',
+        justifyContent: 'space-around',
     },
     textFieldContainer: {
-        flex: .6,
+        flex: .4,
         justifyContent: 'space-evenly',
     },
     textFields: {
+        height: 40,
         backgroundColor: 'white',
         borderColor: 'black',
         borderWidth: 2,
@@ -196,18 +200,18 @@ var styles = StyleSheet.create({
         textDecorationLine: 'underline',
     },
     pinContainer: {
-        marginTop: 30,
-        width: 130,
-        height: 130,
-        alignSelf: 'stretch',
     },
     pinLogo: {
-        flex: 1,
+        width: '10%',
         height: undefined,
-        width: undefined
+        aspectRatio: 1,
+        resizeMode: 'contain'
     },
     appLogoContainer: {
-        justifyContent: 'center',
+        alignSelf: 'flex-end',
+        flex: .4,
+        top: '2%',
+        justifyContent: 'flex-end',
         alignItems: 'center',
     },
 })

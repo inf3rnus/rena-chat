@@ -4,9 +4,10 @@ import { StackActions, NavigationActions } from 'react-navigation';
 import { connect } from 'react-redux';
 import { postHttp } from './reducer';
 import { TextInput } from 'react-native-gesture-handler';
+import LinearGradient from 'react-native-linear-gradient';
 
 //const HOST = 'http://10.0.2.2:8000';
-const HOST = 'http://rena-chat.herokuapp.com';
+const HOST = 'https://rena-chat.herokuapp.com';
 
 export class UserRegistration extends Component {
     constructor(props) {
@@ -22,7 +23,6 @@ export class UserRegistration extends Component {
     }
 
     async register() {
-
         console.log('[register] - Attempting to register a user');
 
         let data = this.createFormData({ username: this.state.username, password1: this.state.password1, password2: this.state.password2 });
@@ -32,18 +32,9 @@ export class UserRegistration extends Component {
         let { status } = this.props.response;
         switch (Number(status)) {
             case 201:
-                let { token } = this.props.response.data;
-                this.props.screenProps.authToken = token;
-                console.log('[login] - Login key is: ' + this.props.screenProps.authToken);
-                this.props.screenProps.username = this.state.username;
+                console.log('[login] - Login key is: ' + this.props.jwt_token);
                 Alert.alert('Success', "Your account has successfully been created. You are now logged in!");
-                const resetAction = StackActions.reset({
-                    index: 0,
-                    actions: [
-                        NavigationActions.navigate({ routeName: 'Profile' }),
-                    ],
-                });
-                this.props.navigation.dispatch(resetAction);
+                await this.login();
                 break;
             case 400:
                 let _response = JSON.parse(this.props.response.response.request._response);
@@ -61,6 +52,41 @@ export class UserRegistration extends Component {
                 Alert.alert('Oops, something went wrong', 'Something went wrong, please try logging in again in a couple of minutes.')
         }
 
+    }
+
+    async login() {
+        console.log('[login] - Attempting to login.');
+        let data = this.createFormData({ username: this.state.username, password: this.state.password1 });
+        await this.props.postHttp('/api/v1/rest-auth/login/', data);
+        let { status } = this.props.response;
+        console.log('[login] - HTTP Status Code: ' + JSON.stringify(this.props.response.status));
+        switch (Number(status)) {
+            case 200:
+                let { token } = this.props.response.data;
+                await AsyncStorage.setItem('authToken', token);
+                console.log('[login] - Login key is: ' + this.props.jwt_token);
+                const resetAction = StackActions.reset({
+                    index: 0,
+                    actions: [
+                        NavigationActions.navigate({ routeName: 'Profile' }),
+                    ],
+                });
+                this.props.navigation.dispatch(resetAction);
+                break;
+            case 400:
+                let _response = JSON.parse(this.props.response.response.request._response);
+                let error_message = _response[Object.keys(_response)][0];
+                console.log('[login] - HTTP Error: ' + JSON.stringify(this.props.response.status));
+                Alert.alert('We couldn\'t log into your account', error_message);
+                break;
+            case 401:
+                let _response2 = JSON.parse(this.props.response.response.request._response);
+                let error_message2 = _response2[Object.keys(_response2)][0];
+                Alert.alert('We couldn\'t log into your account', error_message2);
+                break;
+            default:
+                Alert.alert('Oops, something went wrong', 'Something went wrong, please try logging in again in a couple of minutes.')
+        }
     }
 
     createFormData(body) {
@@ -94,7 +120,10 @@ export class UserRegistration extends Component {
     render() {
         return (
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View style={styles.container}>
+                <LinearGradient
+                    start={{ x: 0.0, y: 0.25 }} end={{ x: 0.5, y: 1.0 }}
+                    colors={['white', 'grey']}
+                    style={styles.container}>
                     {this.renderActivityIndicator()}
                     <Text style={styles.title}>Create Account</Text>
                     <View style={styles.formContainer}>
@@ -112,7 +141,6 @@ export class UserRegistration extends Component {
                                 placeholder="Password"
                                 placeholderTextColor='grey'
                                 onChangeText={(text) => this.state.password1 = text}
-                                onBlur={() => { console.log("[onBlur] Message Text: " + this.state.password1) }}
                                 maxLength={30}
                                 secureTextEntry={true}
                             />
@@ -121,7 +149,6 @@ export class UserRegistration extends Component {
                                 placeholder="Confirm password"
                                 placeholderTextColor='grey'
                                 onChangeText={(text) => this.state.password2 = text}
-                                onBlur={() => { console.log("[onBlur] Message Text: " + this.state.password2) }}
                                 maxLength={30}
                                 secureTextEntry={true}
                             />
@@ -139,10 +166,10 @@ export class UserRegistration extends Component {
                     </View>
                     <View style={styles.appLogoContainer}>
                         <View style={styles.pinContainer}>
-                            <Image style={styles.pinLogo} source={null} />
+                            <Image style={styles.pinLogo} source={require('./images/rena-chat-logo-short.png')} />
                         </View>
                     </View>
-                </View>
+                </LinearGradient>
             </TouchableWithoutFeedback>
         );
     }
@@ -175,18 +202,19 @@ var styles = StyleSheet.create({
     title: {
         fontSize: 32,
         color: 'black',
-        marginTop: '3%',
+        marginTop: '1%',
     },
     formContainer: {
         flex: .8,
         width: '80%',
-        justifyContent: 'space-evenly',
+        justifyContent: 'space-around',
     },
     textFieldContainer: {
         flex: .6,
         justifyContent: 'space-evenly',
     },
     textFields: {
+        height: 40,
         backgroundColor: 'white',
         borderColor: 'black',
         borderWidth: 2,
@@ -204,18 +232,18 @@ var styles = StyleSheet.create({
         borderRadius: 5
     },
     pinContainer: {
-        marginTop: 30,
-        width: 130,
-        height: 130,
-        alignSelf: 'stretch',
     },
     pinLogo: {
-        flex: 1,
+        width: '10%',
         height: undefined,
-        width: undefined
+        aspectRatio: 1,
+        resizeMode: 'contain'
     },
     appLogoContainer: {
-        justifyContent: 'center',
+        alignSelf: 'flex-end',
+        flex: .4,
+        top: '2%',
+        justifyContent: 'flex-end',
         alignItems: 'center',
     },
 })

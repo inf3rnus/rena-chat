@@ -1,27 +1,27 @@
 import React, { Component } from 'react';
 import { ActivityIndicator, Alert, AsyncStorage, FlatList, Image, Keyboard, StyleSheet, PermissionsAndroid, AppRegistry, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View, Button, Platform } from 'react-native';
 import { connect } from 'react-redux';
-import { getHttp, getFriends, getPendingFriends, postHttp, postRequestFriend, postConfirmFriend, postRemoveFriend, postSetProfileBio, postSetProfilePicture, postRemovePendingFriend, setFriendPictureLocalPath, setPendingFriendPictureLocalPath, setProfilePictureLocalPath } from './reducer';
+import { getHttp, getFriends, getPendingFriends, getSearchGlobalUsers, postHttp, postRequestFriend, postConfirmFriend, postRemoveFriend, postSetProfileBio, postSetProfilePicture, postRemovePendingFriend, setFriendPictureLocalPath, setPendingFriendPictureLocalPath, setProfilePictureLocalPath } from './reducer';
 import ImagePicker from 'react-native-image-picker';
 import { TextInput } from 'react-native-gesture-handler';
 import RNFetchBlob from 'rn-fetch-blob';
-
-const HOST = 'http://rena-chat.herokuapp.com';
+import LinearGradient from 'react-native-linear-gradient';
+import SearchableDropdown from 'react-native-searchable-dropdown';
+import { Svg, Polygon } from 'react-native-svg';
 
 export class ProfileScreen extends Component {
 
     constructor(props) {
         super(props)
         this.state = {
-            profile: {
-
-            },
+            profile: this.props.profile,
             topBarOption: 'friends',
-
             request_friend_text: null,
             confirm_friend_text: null,
 
             isEditingBio: false,
+            isSearching: false,
+            shouldRenderFriendBar: true,
         }
         this.changeBodyOption = this.changeBodyOption.bind(this);
         this.getProfile = this.getProfile.bind(this);
@@ -37,15 +37,21 @@ export class ProfileScreen extends Component {
     }
 
     async getProfile() {
+        console.log('[getProfile] - jwt_token is: ' + this.props.jwt_token);
         const headers = new Headers({
             'Content-Type': 'application/json',
             'Authorization': 'JWT ' + this.props.jwt_token
         });
 
-        await this.props.getHttp('/api/v1/users/get_current_profile', headers);
+        let response = await this.props.getHttp('/api/v1/users/get_current_profile', headers);
+        if (response.payload.status === 200) {
+            console.log('[getFriends] - Friends for user: ' + this.props.profile.username + ' ' + JSON.stringify(this.props.friends));
+        }
+
+        this.state.profile = this.props.profile;
 
         console.log('[getProfile] - Current user profile\'s details: ' + JSON.stringify(this.props.profile));
-        console.log('[getProfile] - Picture SERVER PATH equal to: ' + this.props.profile.profile_picture_server_path);
+        console.log('[getProfile] - Picture SERVER PATH equal to: ' + this.props.profile.profile_picture);
 
         let localPicturePath = null;
 
@@ -57,7 +63,7 @@ export class ProfileScreen extends Component {
                     // response data will be saved to this path if it has access right.
                     path: dirs.CacheDir + '/' + filename
                 })
-                .fetch('GET', HOST + this.props.profile.profile_picture, {
+                .fetch('GET', this.props.profile.profile_picture, {
                     //some headers ..
                 })
                 .then((res) => {
@@ -94,7 +100,7 @@ export class ProfileScreen extends Component {
                         // response data will be saved to this path if it has access right.
                         path: dirs.CacheDir + '/' + filename
                     })
-                    .fetch('GET', HOST + friend.profile_picture, {
+                    .fetch('GET', friend.profile_picture, {
                         //some headers ..
                     })
                     .then((res) => {
@@ -129,7 +135,7 @@ export class ProfileScreen extends Component {
                         // response data will be saved to this path if it has access right.
                         path: dirs.CacheDir + '/' + filename
                     })
-                    .fetch('GET', HOST + friend.profile_picture, {
+                    .fetch('GET', friend.profile_picture, {
                         //some headers ..
                     })
                     .then((res) => {
@@ -163,12 +169,14 @@ export class ProfileScreen extends Component {
         const headers = new Headers({
             'Authorization': 'JWT ' + this.props.jwt_token
         });
-        this.props.postConfirmFriend('/api/v1/friends/confirm_friend', headers, data);
-        console.log('[confirmFriend] - Confirmed friend: ' + friend_username + ' for user: ' + this.props.profile.username + ' Result: ' + JSON.stringify(this.props.response.status));
-        Alert.alert(friend_username + ' added!', 'You have added ' + friend_username + ' to your friends list!');
-        // Don't query the server again in the future, just add them to the friends array.
-        await this.getPendingFriends();
-        await this.getFriends();
+        let response = await this.props.postConfirmFriend('/api/v1/friends/confirm_friend', headers, data);
+        if (response.payload.status === 200) {
+            console.log('[confirmFriend] - Confirmed friend: ' + friend_username + ' for user: ' + this.props.profile.username + ' Result: ' + JSON.stringify(this.props.response.status));
+            Alert.alert(friend_username + ' added!', 'You have added ' + friend_username + ' to your friends list!');
+            // Don't query the server again in the future, just add them to the friends array.
+            this.getPendingFriends();
+            this.getFriends();
+        }
     }
 
     async removeFriend(friend_username) {
@@ -221,7 +229,7 @@ export class ProfileScreen extends Component {
                     'Authorization': 'JWT ' + this.props.jwt_token
                 });
                 await this.props.postSetProfilePicture('/api/v1/users/set_profile_picture', headers, data);
-                
+
                 Alert.alert('Success', 'You have successfully added your new profile picture!');
                 this.props.setProfilePictureLocalPath(Platform.OS == 'android' ? response.path : response.uri);
             }
@@ -230,9 +238,7 @@ export class ProfileScreen extends Component {
 
     async setProfileBio() {
         if (!this.state.isEditingBio) {
-            this.setState(() => ({
-                isEditingBio: true
-            }))
+            this.setState({ isEditingBio: true })
         }
         else if (this.state.isEditingBio) {
             let data = this.createFormData({ bio: this.state.profile.bio, username: this.props.profile.username });
@@ -242,14 +248,54 @@ export class ProfileScreen extends Component {
             console.log('[setProfileBio] - Setting bio to: ' + this.state.profile.bio);
             await this.props.postSetProfileBio('/api/v1/users/set_profile_bio', headers, data, this.state.profile.bio);
 
-            if (this.props.response.status === '200') {
+            if (this.props.response.status === 200) {
                 console.log('[setProfileBio] - Successfully added bio to profile, bio: ' + this.props.profile.bio);
                 Alert.alert('Bio changed!', 'You have successfully changed your bio.');
             }
             else {
                 Alert.alert('Uh oh!', 'A network problem has occurred!');
             }
-            this.setState(() => ({isEditingBio: false}));
+            this.setState(() => ({ isEditingBio: false }));
+        }
+    }
+
+    renderBioField(isEditingBio) {
+        if (isEditingBio) {
+            return (
+                <View style={styles.profileBannerBodyBioContainer}>
+                    <View style={{ height: '65%', marginTop: '3%', justifyContent: 'center' }}>
+                        <TextInput style={{
+                            textAlign: 'center',
+                            fontSize: 16,
+                            borderRadius: 7,
+                            backgroundColor: 'white'
+                            // The profile object found in the local state is set in getFriends after its entry in the redux store is updated.
+                        }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80} place>{this.props.profile.bio !== null ? this.state.profile.bio : ''}</TextInput>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
+                        <TouchableOpacity onPress={this.setProfileBio}>
+                            <Text style={{ margin: '2%', fontWeight: 'bold' }}>Save</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            );
+        }
+        else {
+            return (
+                <View style={styles.profileBannerBodyBioContainer}>
+                    <View style={{ height: '65%', marginTop: '3%', justifyContent: 'center' }}>
+                        <Text style={{
+                            textAlign: 'center',
+                            fontSize: 16,
+                        }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.props.profile.bio !== null ? this.state.profile.bio : 'Edit your bio here!'}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
+                        <TouchableOpacity onPress={this.setProfileBio}>
+                            <Text style={{ margin: '2%' }}>edit</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            );
         }
     }
 
@@ -314,9 +360,31 @@ export class ProfileScreen extends Component {
     }
 
     changeBodyOption(option) {
-        this.setState(() => ({
-            topBarOption: option
-        }))
+        switch (option) {
+            case 'friends': {
+                this.setState({
+                    topBarOption: option,
+                    shouldRenderFriendBar: true,
+                    isSearching: false,
+                });
+                break;
+            }
+            case 'chat': {
+                this.setState({
+                    topBarOption: option,
+                    shouldRenderFriendBar: false,
+                });
+                break;
+            }
+            case 'search': {
+                this.setState({
+                    topBarOption: option,
+                    shouldRenderFriendBar: true,
+                    isSearching: true,
+                });
+                break;
+            }
+        }
     }
 
     renderSeparatorComponent() {
@@ -328,22 +396,117 @@ export class ProfileScreen extends Component {
             />
         );
     }
-    renderListHeader(shouldRenderFriendBar) {
+
+    searching = false;
+    username = '';
+    searchUsers() {
+        if (this.searching === true && this.username !== '') {
+            return;
+        }
+        this.searching = true;
+        const headers = new Headers({
+            'Content-Type': 'application/json',
+            'Authorization': 'JWT ' + this.props.jwt_token
+        });
+        setTimeout(async () => {
+            // In the event the user cancels the action while the timeout is ticking down, this prevents an unneccesary call.
+            if (this.searching === true && this.username !== '') {
+                await this.props.getSearchGlobalUsers('/api/v1/users/search_global_users?username=' + this.username, headers);
+            }
+            this.searching = false
+        }, 750);
+
+    }
+
+    renderListHeader() {
         return (
             <View style={{ flex: 1, alignSelf: 'stretch', marginBottom: 10 }}>
                 {
-                    shouldRenderFriendBar === true ?
-                        <View style={styles.addFriendBar}>
-                            <TextInput
-                                style={styles.addFriendBarTextField}
-                                onChangeText={(text) => this.state.request_friend_text = text}
-                                placeholder='Request friend'
-                                placeholderTextColor='grey'
-                            />
-                            <TouchableOpacity style={styles.addFriendBarButton} onPress={() => { this.requestFriend(this.state.request_friend_text) }}>
-                                <Text style={styles.addFriendBarText}>Add</Text>
-                            </TouchableOpacity>
+                    this.state.shouldRenderFriendBar === true ?
+                        <View>
+                            <View style={{
+                                flexDirection: 'row', borderWidth: 1,
+                                borderRadius: 5,
+                                marginBottom: 10,
+                            }}>
+                                <TextInput
+                                    style={{
+                                        flex: 1,
+                                        top: 2,
+                                        height: 35,
+                                    }}
+                                    autoFocus={this.state.isSearching ? true : false}
+                                    placeholder='Search for friends'
+                                    placeholderTextColor='grey'
+                                    onFocus={this.changeBodyOption.bind(this, 'search')}
+                                    onChangeText={(text) => { this.username = text.toLowerCase(); this.searchUsers() }}
+                                />
+                                <ActivityIndicator style={{ marginRight: '3%' }} animating={this.props.userSearchIsLoading} />
+                            </View>
+                            {
+                                this.username === '' && this.state.isSearching === true ?
+                                    <TouchableOpacity style={{ alignSelf: 'flex-end' }} onPress={this.changeBodyOption.bind(this, 'friends')}>
+                                        <Svg style={{ marginRight: '3%', bottom: 5 }} height="20" width="20">
+                                            <Polygon
+                                                points="0,0 10,10 20,0"
+                                                fill="black"
+                                                stroke="black"
+                                                strokeWidth="1"
+                                            />
+                                        </Svg>
+                                    </TouchableOpacity>
+                                    :
+                                    null
+                            }
+                            {
+                                this.props.searchedUsers.length && this.state.isSearching === true >= 1 ?
+                                    <View>
+                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                                            <Text style={{ fontSize: 18, marginLeft: '1%', fontWeight: 'bold', marginBottom: 10 }}>Search results...</Text>
+                                            <TouchableOpacity onPress={this.changeBodyOption.bind(this, 'friends')}>
+                                                <Svg style={{ marginRight: '3%', bottom: 5 }} height="20" width="20">
+                                                    <Polygon
+                                                        points="0,0 10,10 20,0"
+                                                        fill="black"
+                                                        stroke="black"
+                                                        strokeWidth="1"
+                                                    />
+                                                </Svg>
+                                            </TouchableOpacity>
+                                        </View>
+
+                                        <FlatList
+                                            listKey='globalFriendsList'
+                                            style={{ marginBottom: 10, }}
+                                            data={this.props.searchedUsers.slice(0, 3)}
+                                            renderItem={({ item, index, separators }) => (
+                                                <View style={styles.postContentContainer}>
+                                                    <View style={styles.postPictureGroupContainer}>
+                                                        <View style={styles.postPictureContainer}>
+                                                            {item.profile_picture !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? item.profile_picture : item.profile_picture }} /> : null}
+                                                        </View>
+                                                        <Text>{item.username}</Text>
+                                                    </View>
+                                                    <View style={{ flex: 1.5, marginRight: '4%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
+                                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                                            <Text style={{ textAlign: 'center' }}>{item.bio}</Text>
+                                                        </View>
+                                                        <TouchableOpacity onPress={this.requestFriend.bind(this, item.username)} style={{ margin: '1%', padding: '3%', borderRadius: 3, backgroundColor: 'black' }}>
+                                                            <Text style={{ fontSize: 12, color: 'white', zIndex: 200 }}>Request</Text>
+                                                        </TouchableOpacity>
+
+                                                    </View>
+                                                </View>
+                                            )}
+                                            ItemSeparatorComponent={this.renderSeparatorComponent}
+                                            keyExtractor={item => item.username}
+                                        />
+                                    </View>
+                                    :
+                                    null
+                            }
                         </View>
+
                         :
                         null
                 }
@@ -352,6 +515,7 @@ export class ProfileScreen extends Component {
                         <View>
                             <Text style={{ fontSize: 18, marginLeft: '1%', fontWeight: 'bold', marginBottom: 10 }}>Pending friends</Text>
                             <FlatList
+                                listKey='pendingFriendsList'
                                 style={{ marginBottom: 10 }}
                                 data={this.props.pending_friends}
                                 renderItem={({ item, index, separators }) => (
@@ -362,8 +526,10 @@ export class ProfileScreen extends Component {
                                             </View>
                                             <Text>{item.username}</Text>
                                         </View>
-                                        <View style={{ flex: 1.5, marginRight: '2%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
-                                            <Text style={{ textAlign: 'center', paddingLeft: '33%' }}>{item.bio}</Text>
+                                        <View style={{ flex: 1.5, marginRight: '4%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
+                                            <View style={{ flex: 1, alignItems: 'center' }}>
+                                                <Text style={{ textAlign: 'center' }}>{item.bio}</Text>
+                                            </View>
                                             <TouchableOpacity onPress={this.confirmFriend.bind(this, item.username)} style={{ margin: '1%', padding: '3%', borderRadius: 3, backgroundColor: 'black' }}>
                                                 <Text style={{ fontSize: 12, color: 'white' }}>Add</Text>
                                             </TouchableOpacity>
@@ -381,47 +547,11 @@ export class ProfileScreen extends Component {
                         null
                 }
 
-                <Text style={{ fontSize: 18, marginLeft: '1%', fontWeight: 'bold' }}>Friends</Text>
+                <Text style={{ fontSize: 18, marginLeft: '1%', fontWeight: 'bold' }}>{this.props.friends.length > 0 ? 'Friends' : 'You have no friends currently, please use the search to request new friends!'}</Text>
             </View>
 
 
         );
-    }
-
-    renderBioField(isEditingBio) {
-        if (isEditingBio) {
-            return (
-                <View style={styles.profileBannerBodyBioContainer}>
-                    <TextInput style={{
-                        textAlign: 'center',
-                        fontSize: 16,
-                        borderRadius: 7,
-                        backgroundColor: 'white'
-                    }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.props.profile.bio}</TextInput>
-                    <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
-                        <TouchableOpacity onPress={this.setProfileBio}>
-                            <Text style={{ margin: '2%', fontWeight: 'bold' }}>Save</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            );
-        }
-        else {
-            return (
-                <View style={styles.profileBannerBodyBioContainer}>
-                    <Text style={{
-                        textAlign: 'center',
-                        fontSize: 16,
-                        borderRadius: 7,
-                    }} onChangeText={(text) => this.state.profile.bio = text} multiline={true} numberOfLines={3} maxLength={80}>{this.props.profile.bio}</Text>
-                    <View style={{ flexDirection: 'row', alignSelf: 'flex-end', marginRight: '2%' }}>
-                        <TouchableOpacity onPress={this.setProfileBio}>
-                            <Text style={{ margin: '2%' }}>edit</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            );
-        }
     }
 
     render() {
@@ -429,73 +559,83 @@ export class ProfileScreen extends Component {
             return (
                 <View style={styles.container}>
                     {this.renderActivityIndicator()}
-                    <View style={styles.profileContainer}>
-                        <View style={styles.profileBanner}>
+                    <View style={styles.profileBanner}>
 
-                            <View style={styles.profileBannerPictureGroupContainer}>
-                                <View style={styles.profileBannerPictureContainer}>
-                                    {this.props.profile.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + this.props.profile.profile_picture_local_path : this.props.profile.profile_picture_local_path }} /> : null}
-                                </View>
-                                <TouchableOpacity onPress={this.setProfilePicture}>
-                                    <Text style={styles.profileBannerUploadPhotoText}>Upload photo</Text>
-                                </TouchableOpacity>
+                        <View style={styles.profileBannerPictureGroupContainer}>
+                            <View style={styles.profileBannerPictureContainer}>
+                                {this.props.profile.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + this.props.profile.profile_picture_local_path : this.props.profile.profile_picture_local_path }} /> : null}
+                            </View>
+                            <TouchableOpacity onPress={this.setProfilePicture}>
+                                <Text style={styles.profileBannerUploadPhotoText}>Upload photo</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.profileBannerBodyContainer}>
+
+                            <View style={styles.profileBannerBodyNameContainer}>
+                                <Text style={styles.profileBannerBodyName}>{this.props.profile.username}</Text>
                             </View>
 
-                            <View style={styles.profileBannerBodyContainer}>
-
-                                <View style={styles.profileBannerBodyNameContainer}>
-                                    <Text style={styles.profileBannerBodyName}>{this.props.profile.username}</Text>
-                                </View>
-
-                                {this.renderBioField(this.state.isEditingBio)}
-
-                            </View>
+                            {this.renderBioField(this.state.isEditingBio)}
 
                         </View>
 
-                        <View style={styles.bodyContainer}>
-                            <View style={styles.bodyTopBar}>
+                    </View>
 
+                    <View style={styles.bodyContainer}>
+                        <View style={styles.bodyTopBar}>
+
+                            <LinearGradient
+                                start={{ x: 0, y: .7 }} end={{ x: 0, y: 1.0 }}
+                                colors={['white', 'white']}
+                                style={styles.bodyTopBarPostsButton}>
                                 <TouchableOpacity
                                     style={styles.bodyTopBarFriendsButton}
                                     onPress={this.changeBodyOption.bind(this, 'friends')}
                                 >
                                     <Text style={styles.bodyTopBarFriendsButtonText}>Friends</Text>
                                 </TouchableOpacity>
+                            </LinearGradient>
 
+                            <LinearGradient
+                                start={{ x: 0, y: .7 }} end={{ x: 0, y: 1.0 }}
+                                colors={['#E6E6E6', 'darkgrey']}
+                                style={styles.bodyTopBarHotButton}>
                                 <TouchableOpacity
                                     style={styles.bodyTopBarHotButton}
                                     onPress={this.changeBodyOption.bind(this, 'chat')}
                                 >
                                     <Text style={styles.bodyTopBarHotButtonText}>Chat</Text>
                                 </TouchableOpacity>
+                            </LinearGradient>
 
-                            </View>
-
-                            <FlatList
-                                style={styles.postsContainer}
-                                data={this.props.friends}
-                                renderItem={({ item, index, separators }) => (
-                                    <View style={styles.postContentContainer}>
-                                        <View style={styles.postPictureGroupContainer}>
-                                            <View style={styles.postPictureContainer}>
-                                                {item.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture_local_path : item.profile_picture_local_path }} /> : null}
-                                            </View>
-                                            <Text>{item.username}</Text>
-                                        </View>
-                                        <View style={{ flex: 1.05, marginRight: '2%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
-                                            <Text style={{ textAlign: 'center', paddingLeft: '20%' }}>{item.bio}</Text>
-                                            <TouchableOpacity onPress={this.removeFriend.bind(this, item.username)} style={{ margin: '1%', padding: '3%', borderRadius: 3, backgroundColor: 'black' }}>
-                                                <Text style={{ fontSize: 12, color: 'white' }}>Remove</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    </View>
-                                )}
-                                ItemSeparatorComponent={this.renderSeparatorComponent}
-                                ListHeaderComponent={this.renderListHeader.bind(this, true)}
-                                keyExtractor={item => item.username}
-                            />
                         </View>
+
+                        <FlatList
+                            style={styles.postsContainer}
+                            data={this.props.friends}
+                            renderItem={({ item, index, separators }) => (
+                                <View style={styles.postContentContainer}>
+                                    <View style={styles.postPictureGroupContainer}>
+                                        <View style={styles.postPictureContainer}>
+                                            {item.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture_local_path : item.profile_picture_local_path }} /> : null}
+                                        </View>
+                                        <Text>{item.username}</Text>
+                                    </View>
+                                    <View style={{ flex: 1.5, marginRight: '4%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
+                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                            <Text style={{ textAlign: 'center' }}>{item.bio}</Text>
+                                        </View>
+                                        <TouchableOpacity onPress={this.removeFriend.bind(this, item.username)} style={{ margin: '1%', padding: '3%', borderRadius: 3, backgroundColor: 'black' }}>
+                                            <Text style={{ fontSize: 12, color: 'white' }}>Remove</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            )}
+                            ItemSeparatorComponent={this.renderSeparatorComponent}
+                            ListHeaderComponent={this.renderListHeader}
+                            keyExtractor={item => item.username}
+                        />
                     </View>
                 </View>
             );
@@ -530,19 +670,29 @@ export class ProfileScreen extends Component {
                         <View style={styles.bodyContainer}>
                             <View style={styles.bodyTopBar}>
 
-                                <TouchableOpacity
-                                    style={styles.bodyTopBarFriendsButton}
-                                    onPress={this.changeBodyOption.bind(this, 'friends')}
-                                >
-                                    <Text style={styles.bodyTopBarFriendsButtonText}>Friends</Text>
-                                </TouchableOpacity>
+                                <LinearGradient
+                                    start={{ x: 0, y: .7 }} end={{ x: 0, y: 1.0 }}
+                                    colors={['#E6E6E6', 'darkgrey']}
+                                    style={styles.bodyTopBarPostsButton}>
+                                    <TouchableOpacity
+                                        style={styles.bodyTopBarFriendsButton}
+                                        onPress={this.changeBodyOption.bind(this, 'friends')}
+                                    >
+                                        <Text style={styles.bodyTopBarFriendsButtonText}>Friends</Text>
+                                    </TouchableOpacity>
+                                </LinearGradient>
 
-                                <TouchableOpacity
-                                    style={styles.bodyTopBarHotButton}
-                                    onPress={this.changeBodyOption.bind(this, 'chat')}
-                                >
-                                    <Text style={styles.bodyTopBarHotButtonText}>Chat</Text>
-                                </TouchableOpacity>
+                                <LinearGradient
+                                    start={{ x: 0, y: .7 }} end={{ x: 0, y: 1.0 }}
+                                    colors={['white', 'white']}
+                                    style={styles.bodyTopBarHotButton}>
+                                    <TouchableOpacity
+                                        style={styles.bodyTopBarHotButton}
+                                        onPress={this.changeBodyOption.bind(this, 'chat')}
+                                    >
+                                        <Text style={styles.bodyTopBarHotButtonText}>Chat</Text>
+                                    </TouchableOpacity>
+                                </LinearGradient>
 
                             </View>
 
@@ -559,8 +709,10 @@ export class ProfileScreen extends Component {
                                             </View>
                                             <Text>{item.username}</Text>
                                         </View>
-                                        <View style={{ flex: 1.05, marginRight: '2%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
-                                            <Text style={{ textAlign: 'center', paddingLeft: '20%' }}>{item.bio}</Text>
+                                        <View style={{ flex: 1.5, marginRight: '4%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
+                                            <View style={{ flex: 1, alignItems: 'center' }}>
+                                                <Text style={{ textAlign: 'center' }}>{item.bio}</Text>
+                                            </View>
                                             <TouchableOpacity onPress={this.startChat.bind(this, item.pk)} style={{ margin: '1%', padding: '3%', borderRadius: 3, backgroundColor: 'black' }}>
                                                 <Text style={{ fontSize: 12, color: 'white' }}>Chat</Text>
                                             </TouchableOpacity>
@@ -568,10 +720,78 @@ export class ProfileScreen extends Component {
                                     </View>
                                 )}
                                 ItemSeparatorComponent={this.renderSeparatorComponent}
-                                ListHeaderComponent={this.renderListHeader.bind(this, false)}
+                                ListHeaderComponent={this.renderListHeader}
                                 keyExtractor={item => item.username}
                             />
                         </View>
+                    </View>
+                </View>
+            );
+        else if (this.state.topBarOption === 'search')
+            return (
+                <View style={{
+                    flex: 1,
+                    justifyContent: 'flex-start',
+                    padding: 25,
+                    flexDirection: 'column',
+                    backgroundColor: 'lightgrey',
+
+                }}>
+                    <View style={{ ...styles.bodyContainer, marginTop: '1%', flex: 1 }}>
+                        <View style={styles.bodyTopBar}>
+
+                            <LinearGradient
+                                start={{ x: 0, y: .7 }} end={{ x: 0, y: 1.0 }}
+                                colors={['white', 'white']}
+                                style={styles.bodyTopBarPostsButton}>
+                                <TouchableOpacity
+                                    style={styles.bodyTopBarFriendsButton}
+                                    onPress={this.changeBodyOption.bind(this, 'friends')}
+                                >
+                                    <Text style={styles.bodyTopBarFriendsButtonText}>Friends</Text>
+                                </TouchableOpacity>
+                            </LinearGradient>
+
+                            <LinearGradient
+                                start={{ x: 0, y: .7 }} end={{ x: 0, y: 1.0 }}
+                                colors={['#E6E6E6', 'darkgrey']}
+                                style={styles.bodyTopBarHotButton}>
+                                <TouchableOpacity
+                                    style={styles.bodyTopBarHotButton}
+                                    onPress={this.changeBodyOption.bind(this, 'chat')}
+                                >
+                                    <Text style={styles.bodyTopBarHotButtonText}>Chat</Text>
+                                </TouchableOpacity>
+                            </LinearGradient>
+
+                        </View>
+
+                        <FlatList
+                            keyboardShouldPersistTaps='always'
+                            style={styles.postsContainer}
+                            data={this.props.friends}
+                            renderItem={({ item, index, separators }) => (
+                                <View style={styles.postContentContainer}>
+                                    <View style={styles.postPictureGroupContainer}>
+                                        <View style={styles.postPictureContainer}>
+                                            {item.profile_picture_local_path !== null ? <Image style={styles.profileBannerPicture} source={{ uri: Platform.OS == 'android' ? 'file://' + item.profile_picture_local_path : item.profile_picture_local_path }} /> : null}
+                                        </View>
+                                        <Text>{item.username}</Text>
+                                    </View>
+                                    <View style={{ flex: 1.5, marginRight: '4%', alignItems: 'center', justifyContent: 'flex-end', flexDirection: 'row' }}>
+                                        <View style={{ flex: 1, alignItems: 'center' }}>
+                                            <Text style={{ textAlign: 'center' }}>{item.bio}</Text>
+                                        </View>
+                                        <TouchableOpacity onPress={this.removeFriend.bind(this, item.username)} style={{ margin: '1%', padding: '3%', borderRadius: 3, backgroundColor: 'black' }}>
+                                            <Text style={{ fontSize: 12, color: 'white' }}>Remove</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            )}
+                            ItemSeparatorComponent={this.renderSeparatorComponent}
+                            ListHeaderComponent={this.renderListHeader}
+                            keyExtractor={item => item.username}
+                        />
                     </View>
                 </View>
             );
@@ -587,6 +807,8 @@ const mapStateToProps = state => {
     let profile = state.profile;
     let friends = state.friends;
     let pending_friends = state.pending_friends;
+    let searchedUsers = state.searchedUsers;
+    let userSearchIsLoading = state.userSearchIsLoading;
 
     return {
         friends: friends,
@@ -594,7 +816,9 @@ const mapStateToProps = state => {
         loading: loading,
         jwt_token: jwt_token,
         profile: profile,
-        response: response
+        response: response,
+        searchedUsers: searchedUsers,
+        userSearchIsLoading: userSearchIsLoading
     };
 };
 
@@ -602,6 +826,7 @@ const mapDispatchToProps = {
     getHttp,
     getFriends,
     getPendingFriends,
+    getSearchGlobalUsers,
 
     postHttp,
     postConfirmFriend,
@@ -651,19 +876,18 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     profileBannerPictureContainer: {
-        flex: 1,
+        flex: .85,
         aspectRatio: 1,
         borderRadius: 200,
         margin: '2%',
-        borderWidth: 2,
-        borderColor: 'grey',
+
         backgroundColor: 'white'
     },
     profileBannerPicture: {
-        flex: 1,
         aspectRatio: 1,
         borderRadius: 200,
-
+        borderWidth: 1.5,
+        borderColor: 'grey',
     },
     profileBannerUploadPhotoText: {
     },
@@ -697,9 +921,13 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         marginTop: '7%',
         backgroundColor: 'white',
+        borderTopRightRadius: 15,
+        borderTopLeftRadius: 15,
+        borderBottomLeftRadius: 15,
+        borderBottomRightRadius: 15,
     },
     bodyTopBar: {
-        height: '10%',
+        height: 40,
         flexDirection: 'row',
         backgroundColor: '#E6E6E6',
         borderTopLeftRadius: 15,
@@ -782,12 +1010,12 @@ const styles = StyleSheet.create({
     postsContainer: {
         flex: 1,
         color: 'red',
-        margin: '2%',
+        margin: '4%',
         zIndex: 50,
 
     },
     postContentContainer: {
-        height: 95,
+        height: 110,
         flexDirection: 'row',
         alignSelf: 'stretch',
         justifyContent: 'space-evenly',
@@ -800,14 +1028,13 @@ const styles = StyleSheet.create({
         flex: .6,
         alignItems: 'center',
         justifyContent: 'center',
+        padding: '3%',
+        marginBottom: '5%'
     },
     postPictureContainer: {
         flex: 1,
         aspectRatio: 1,
         borderRadius: 200,
-        margin: '2%',
-        borderWidth: 2,
-        borderColor: 'grey',
         backgroundColor: 'white'
     },
     postPicture: {

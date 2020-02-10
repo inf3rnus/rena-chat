@@ -14,6 +14,10 @@ export const GET_PREVIOUS_MESSAGES = 'GET_PREVIOUS_MESSAGES';
 export const GET_PREVIOUS_MESSAGES_SUCCESS = 'GET_PREVIOUS_MESSAGES_SUCCESS';
 export const GET_PREVIOUS_MESSAGES_FAIL = 'GET_PREVIOUS_MESSAGES_FAIL';
 
+export const GET_SEARCH_GLOBAL_USERS = 'GET_SEARCH_GLOBAL_USERS';
+export const GET_SEARCH_GLOBAL_USERS_SUCCESS = 'GET_SEARCH_GLOBAL_USERS_SUCCESS';
+export const GET_SEARCH_GLOBAL_USERS_FAIL = 'GET_SEARCH_GLOBAL_USERS_FAIL';
+
 export const POST_REQUEST_FRIEND = 'POST_REQUEST_FRIEND';
 export const POST_REQUEST_FRIEND_SUCCESS = 'POST_REQUEST_FRIEND_SUCCESS';
 export const POST_REQUEST_FRIEND_FAIL = 'POST_REQUEST_FRIEND_FAIL';
@@ -50,7 +54,19 @@ export const POST = 'POST';
 export const POST_SUCCESS = 'POST_SUCCESS';
 export const POST_FAIL = 'POST_FAIL';
 
-export default function reducer(state = { baseURL: 'http://rena-chat.herokuapp.com', messages: [], profile: {}, pending_friends: [] }, action) {
+const initialState = {
+    baseURL: 'https://rena-chat.herokuapp.com',
+    messages: [],
+    friends: [],
+    profile: {
+        bio: null,
+    },
+    pending_friends: [],
+    userSearchIsLoading: false,
+    searchedUsers: []
+}
+
+export default function reducer(state = initialState, action) {
     switch (action.type) {
         case GET_FRIENDS:
             return {
@@ -136,7 +152,6 @@ export default function reducer(state = { baseURL: 'http://rena-chat.herokuapp.c
                 response: action.payload,
                 profile: {
                     ...action.payload.data,
-                    profile_picture_server_path: state.baseURL + action.payload.data.profile_picture,
                 }
             };
         case GET_PROFILE_FAIL:
@@ -160,10 +175,9 @@ export default function reducer(state = { baseURL: 'http://rena-chat.herokuapp.c
             // Messages object contains a results property that stores individual messages in an array
             action.payload.data.results.forEach((message) => {
                 var message_contents_object = JSON.parse(message.message_contents);
-                console.log('[getPreviousMessages] - Current Message ID from the API is: ' + JSON.stringify(message.id));
                 message_contents_object._id = message.id;
                 message.message_contents = JSON.stringify(message_contents_object);
-    
+
                 lastMessages = [...lastMessages, message_contents_object];
             })
             return {
@@ -176,6 +190,33 @@ export default function reducer(state = { baseURL: 'http://rena-chat.herokuapp.c
             return {
                 ...state,
                 loading: false,
+                response: {
+                    ...action.error,
+                    // Middleware embeds status code on failure inside of the message property string.
+                    status: action.error.response.status
+                }
+            };
+        case GET_SEARCH_GLOBAL_USERS:
+            return {
+                ...state,
+                userSearchIsLoading: true,
+            };
+        case GET_SEARCH_GLOBAL_USERS_SUCCESS:
+            // Friends object contains a pk property that needs to be converted to 'id'
+            action.payload.data.forEach((user) => {
+                user.id = user.pk;
+                user.name = user.username;
+            });
+            return {
+                ...state,
+                response: action.payload,
+                searchedUsers: action.payload.data,
+                userSearchIsLoading: false,
+            }
+        case GET_SEARCH_GLOBAL_USERS_FAIL:
+            return {
+                ...state,
+                userSearchIsLoading: false,
                 response: {
                     ...action.error,
                     // Middleware embeds status code on failure inside of the message property string.
@@ -304,7 +345,7 @@ export default function reducer(state = { baseURL: 'http://rena-chat.herokuapp.c
                     // Add bio payload from initial request.
                     bio: action.meta.previousAction.payload.bio
                 },
-                response: action.payload.data,
+                response: action.payload,
             };
         case POST_SET_PROFILE_BIO_FAIL:
             return {
@@ -460,6 +501,20 @@ export function postRemovePendingFriend(url, headers, data) {
 export function getHttp(url, headers) {
     return {
         type: GET_PROFILE,
+        payload: {
+            request: {
+                headers: headers,
+                method: 'get',
+                url: url,
+            }
+
+        }
+    };
+}
+
+export function getSearchGlobalUsers(url, headers) {
+    return {
+        type: GET_SEARCH_GLOBAL_USERS,
         payload: {
             request: {
                 headers: headers,

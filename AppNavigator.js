@@ -1,3 +1,5 @@
+import React from 'react';
+import { Image } from 'react-native';
 import { createStackNavigator } from 'react-navigation-stack';
 import { createAppContainer } from 'react-navigation';
 import SplashScreen from './screens/SplashScreen';
@@ -39,6 +41,14 @@ const AppNavigator = createStackNavigator(
         backgroundColor: 'black',
 
       },
+      headerTitle: () => <Image style={{
+        flex: .5,
+        alignSelf: 'stretch',
+        height: undefined,
+        width: undefined,
+        resizeMode: 'contain',
+      }} source={require('./screens/images/rena-chat-logo-2.png')} />,
+
       headerTintColor: '#fff',
       headerTitleStyle: {
         fontSize: 34,

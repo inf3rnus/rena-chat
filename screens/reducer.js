@@ -57,6 +57,7 @@ export const POST_FAIL = 'POST_FAIL';
 const initialState = {
     baseURL: 'https://rena-chat.herokuapp.com',
     messages: [],
+    friends: [],
     profile: {
         bio: '',
     },

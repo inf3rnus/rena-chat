@@ -547,7 +547,7 @@ export class ProfileScreen extends Component {
                         null
                 }
 
-                <Text style={{ fontSize: 18, marginLeft: '1%', fontWeight: 'bold' }}>Friends</Text>
+                <Text style={{ fontSize: 18, marginLeft: '1%', fontWeight: 'bold' }}>{this.props.friends.length > 0 ? 'Friends' : 'You have no friends currently, please use the search to request new friends!'}</Text>
             </View>
 
 

@@ -23,7 +23,6 @@ export class UserRegistration extends Component {
     }
 
     async register() {
-
         console.log('[register] - Attempting to register a user');
 
         let data = this.createFormData({ username: this.state.username, password1: this.state.password1, password2: this.state.password2 });
@@ -33,18 +32,9 @@ export class UserRegistration extends Component {
         let { status } = this.props.response;
         switch (Number(status)) {
             case 201:
-                let { token } = this.props.response.data;
-                this.props.screenProps.authToken = token;
-                console.log('[login] - Login key is: ' + this.props.screenProps.authToken);
-                this.props.screenProps.username = this.state.username;
+                console.log('[login] - Login key is: ' + this.props.jwt_token);
                 Alert.alert('Success', "Your account has successfully been created. You are now logged in!");
-                const resetAction = StackActions.reset({
-                    index: 0,
-                    actions: [
-                        NavigationActions.navigate({ routeName: 'Profile' }),
-                    ],
-                });
-                this.props.navigation.dispatch(resetAction);
+                await this.login();
                 break;
             case 400:
                 let _response = JSON.parse(this.props.response.response.request._response);
@@ -62,6 +52,41 @@ export class UserRegistration extends Component {
                 Alert.alert('Oops, something went wrong', 'Something went wrong, please try logging in again in a couple of minutes.')
         }
 
+    }
+
+    async login() {
+        console.log('[login] - Attempting to login.');
+        let data = this.createFormData({ username: this.state.username, password: this.state.password1 });
+        await this.props.postHttp('/api/v1/rest-auth/login/', data);
+        let { status } = this.props.response;
+        console.log('[login] - HTTP Status Code: ' + JSON.stringify(this.props.response.status));
+        switch (Number(status)) {
+            case 200:
+                let { token } = this.props.response.data;
+                await AsyncStorage.setItem('authToken', token);
+                console.log('[login] - Login key is: ' + this.props.jwt_token);
+                const resetAction = StackActions.reset({
+                    index: 0,
+                    actions: [
+                        NavigationActions.navigate({ routeName: 'Profile' }),
+                    ],
+                });
+                this.props.navigation.dispatch(resetAction);
+                break;
+            case 400:
+                let _response = JSON.parse(this.props.response.response.request._response);
+                let error_message = _response[Object.keys(_response)][0];
+                console.log('[login] - HTTP Error: ' + JSON.stringify(this.props.response.status));
+                Alert.alert('We couldn\'t log into your account', error_message);
+                break;
+            case 401:
+                let _response2 = JSON.parse(this.props.response.response.request._response);
+                let error_message2 = _response2[Object.keys(_response2)][0];
+                Alert.alert('We couldn\'t log into your account', error_message2);
+                break;
+            default:
+                Alert.alert('Oops, something went wrong', 'Something went wrong, please try logging in again in a couple of minutes.')
+        }
     }
 
     createFormData(body) {

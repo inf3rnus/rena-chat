@@ -37,12 +37,16 @@ export class ProfileScreen extends Component {
     }
 
     async getProfile() {
+        console.log('[getProfile] - jwt_token is: ' + this.props.jwt_token);
         const headers = new Headers({
             'Content-Type': 'application/json',
             'Authorization': 'JWT ' + this.props.jwt_token
         });
 
-        await this.props.getHttp('/api/v1/users/get_current_profile', headers);
+        let response = await this.props.getHttp('/api/v1/users/get_current_profile', headers);
+        if (response.payload.status === 200) {
+            console.log('[getFriends] - Friends for user: ' + this.props.profile.username + ' ' + JSON.stringify(this.props.friends));
+        }
 
         this.state.profile = this.props.profile;
 
@@ -279,7 +283,7 @@ export class ProfileScreen extends Component {
         else {
             return (
                 <View style={styles.profileBannerBodyBioContainer}>
-                    <View style={{ height: '65%', marginTop: '3%', justifyContent: 'center'}}>
+                    <View style={{ height: '65%', marginTop: '3%', justifyContent: 'center' }}>
                         <Text style={{
                             textAlign: 'center',
                             fontSize: 16,
